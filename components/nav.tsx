@@ -5,9 +5,6 @@ export default function Nav() {
         <span className="font-sans font-semibold text-lg tracking-tight text-zinc-50">
           Bettrade
         </span>
-        <button className="px-4 py-1.5 text-sm font-medium rounded-md bg-sky-500 hover:bg-sky-400 text-white transition-colors cursor-pointer">
-          Request Access
-        </button>
       </div>
     </header>
   )

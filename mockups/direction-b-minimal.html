@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bettrade — Direction B</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #000000;
+    --surface: #0a0a0a;
+    --surface-2: #141414;
+    --surface-3: #1c1c1c;
+    --border: #262626;
+    --text: #fafafa;
+    --text-dim: #737373;
+    --text-mid: #a3a3a3;
+    --accent: #e5e5e5;
+  }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* === NAV === */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 48px; height: 64px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(20px) saturate(1.2);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-size: 20px; font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .nav-links { display: flex; gap: 36px; }
+  .nav-links a {
+    font-size: 14px; color: var(--text-dim); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    font-size: 13px; font-weight: 600; color: var(--bg);
+    background: var(--text); padding: 10px 24px;
+    border-radius: 100px; border: none; cursor: pointer;
+    text-decoration: none; font-family: 'Space Grotesk', sans-serif;
+    transition: opacity 0.2s;
+  }
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* === HERO === */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    padding: 140px 48px 100px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Massive blurred shape */
+  .hero-shape {
+    position: absolute;
+    width: 900px; height: 600px;
+    top: 10%; right: -10%;
+    background: conic-gradient(from 180deg at 50% 50%, #171717 0deg, #262626 90deg, #0a0a0a 180deg, #1c1c1c 270deg, #171717 360deg);
+    filter: blur(80px);
+    opacity: 0.6;
+    border-radius: 50%;
+  }
+
+  .hero-content { position: relative; max-width: 720px; }
+  .hero-tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 6px 16px;
+    border-radius: 4px;
+    margin-bottom: 40px;
+    letter-spacing: 0.5px;
+  }
+
+  .hero h1 {
+    font-size: clamp(48px, 7vw, 80px);
+    font-weight: 700;
+    letter-spacing: -3px;
+    line-height: 0.95;
+    margin-bottom: 32px;
+  }
+  .hero h1 .line-2 { color: var(--text-dim); }
+
+  .hero-body {
+    font-size: 18px; color: var(--text-mid);
+    max-width: 480px; line-height: 1.7;
+    margin-bottom: 48px;
+  }
+
+  .hero-buttons { display: flex; gap: 16px; align-items: center; }
+  .btn-white {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 16px 32px;
+    background: var(--text); color: var(--bg);
+    font-size: 15px; font-weight: 600; font-family: 'Space Grotesk', sans-serif;
+    border-radius: 100px; border: none; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-white:hover { opacity: 0.85; }
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 16px 32px;
+    background: transparent; color: var(--text-mid);
+    font-size: 15px; font-weight: 500; font-family: 'Space Grotesk', sans-serif;
+    border: none; cursor: pointer; text-decoration: none;
+    transition: color 0.2s;
+  }
+  .btn-ghost:hover { color: var(--text); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  /* === MARQUEE === */
+  .marquee-wrap {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    padding: 20px 0;
+  }
+  .marquee {
+    display: flex; gap: 64px;
+    animation: scroll-marquee 30s linear infinite;
+    width: max-content;
+  }
+  @keyframes scroll-marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .marquee span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; color: var(--text-dim);
+    white-space: nowrap;
+    letter-spacing: 1px;
+  }
+
+  /* === BENTO GRID === */
+  .bento-section {
+    padding: 120px 48px;
+    max-width: 1200px; margin: 0 auto;
+  }
+  .bento-header {
+    margin-bottom: 64px;
+  }
+  .bento-header h2 {
+    font-size: 40px; font-weight: 700; letter-spacing: -1.5px;
+    margin-bottom: 12px;
+  }
+  .bento-header p {
+    font-size: 16px; color: var(--text-dim); max-width: 400px;
+  }
+
+  .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto;
+    gap: 2px;
+  }
+  .bento-card {
+    background: var(--surface);
+    padding: 40px;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    min-height: 260px;
+    transition: background 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .bento-card:hover { background: var(--surface-2); }
+  .bento-card.wide { grid-column: span 2; }
+  .bento-card.tall { grid-row: span 2; }
+
+  .bento-card .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    margin-bottom: 16px;
+  }
+  .bento-card h3 {
+    font-size: 22px; font-weight: 700; letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    max-width: 360px;
+  }
+  .bento-card p {
+    font-size: 14px; color: var(--text-dim);
+    line-height: 1.7;
+    max-width: 400px;
+  }
+
+  /* Decorative elements inside bento cards */
+  .bento-visual {
+    margin-top: auto;
+    padding-top: 24px;
+  }
+  .mini-chart {
+    display: flex; align-items: flex-end; gap: 3px; height: 60px;
+  }
+  .mini-chart .bar {
+    flex: 1;
+    background: var(--surface-3);
+    border-radius: 2px 2px 0 0;
+    transition: background 0.3s;
+  }
+  .bento-card:hover .mini-chart .bar { background: var(--border); }
+  .mini-chart .bar.accent { background: var(--text-dim); }
+  .bento-card:hover .mini-chart .bar.accent { background: var(--text-mid); }
+
+  .data-rows { display: flex; flex-direction: column; gap: 0; }
+  .data-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+  .data-row:last-child { border-bottom: none; }
+  .data-row .label { color: var(--text-dim); }
+  .data-row .value { color: var(--text); font-weight: 500; }
+
+  /* === PIPELINE SECTION === */
+  .pipeline-section {
+    padding: 120px 48px;
+    max-width: 1200px; margin: 0 auto;
+  }
+  .pipeline-header {
+    margin-bottom: 80px;
+    max-width: 520px;
+  }
+  .pipeline-header h2 {
+    font-size: 40px; font-weight: 700; letter-spacing: -1.5px;
+    margin-bottom: 12px;
+  }
+  .pipeline-header p { font-size: 16px; color: var(--text-dim); }
+
+  .pipeline {
+    display: flex; gap: 2px;
+  }
+  .pipeline-step {
+    flex: 1;
+    background: var(--surface);
+    padding: 40px 32px;
+    position: relative;
+  }
+  .pipeline-step::after {
+    content: '\2192';
+    position: absolute; right: -14px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px; color: var(--border);
+    z-index: 1;
+  }
+  .pipeline-step:last-child::after { display: none; }
+  .pipeline-step .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+  }
+  .pipeline-step h3 {
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+  }
+  .pipeline-step p {
+    font-size: 13px; color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* === CTA === */
+  .cta-section {
+    padding: 160px 48px;
+    text-align: center;
+    position: relative;
+  }
+  .cta-section h2 {
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 700; letter-spacing: -2px;
+    margin-bottom: 16px;
+  }
+  .cta-section p {
+    font-size: 16px; color: var(--text-dim);
+    margin-bottom: 40px;
+  }
+
+  /* === FOOTER === */
+  footer {
+    padding: 32px 48px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  footer span {
+    font-size: 13px; color: var(--text-dim);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Bettrade</div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#cta">Access</a>
+  </div>
+  <a href="#cta" class="nav-cta">Get Access</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-shape"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Betfair Exchange &times; Genius Sports</div>
+    <h1>
+      Automated<br>
+      <span class="line-2">sports trading.</span>
+    </h1>
+    <p class="hero-body">
+      Live match data meets exchange execution. Bettrade processes Genius Sports signals and trades Betfair markets autonomously — faster than you can blink.
+    </p>
+    <div class="hero-buttons">
+      <button class="btn-white">Request Access</button>
+      <a href="#pipeline" class="btn-ghost">
+        How it works
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8m-4-4l4 4-4 4"/></svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="marquee-wrap">
+  <div class="marquee">
+    <span>BETFAIR EXCHANGE</span>
+    <span>&middot;</span>
+    <span>GENIUS SPORTS API</span>
+    <span>&middot;</span>
+    <span>STREAM API</span>
+    <span>&middot;</span>
+    <span>REAL-TIME EXECUTION</span>
+    <span>&middot;</span>
+    <span>AUTOMATED TRADING</span>
+    <span>&middot;</span>
+    <span>LIVE KEY ACTIVATED</span>
+    <span>&middot;</span>
+    <span>BETFAIR EXCHANGE</span>
+    <span>&middot;</span>
+    <span>GENIUS SPORTS API</span>
+    <span>&middot;</span>
+    <span>STREAM API</span>
+    <span>&middot;</span>
+    <span>REAL-TIME EXECUTION</span>
+    <span>&middot;</span>
+    <span>AUTOMATED TRADING</span>
+    <span>&middot;</span>
+    <span>LIVE KEY ACTIVATED</span>
+  </div>
+</div>
+
+<div class="bento-section" id="features">
+  <div class="bento-header">
+    <h2>Everything you need.</h2>
+    <p>No fluff. Each piece exists because the pipeline demands it.</p>
+  </div>
+
+  <div class="bento-grid">
+    <div class="bento-card wide">
+      <div>
+        <div class="tag">Data Source</div>
+        <h3>Genius Sports real-time feed</h3>
+        <p>Goals, cards, momentum shifts, dangerous attacks — streamed via Ably channels. Sub-250ms from pitch to your pipeline.</p>
+      </div>
+      <div class="bento-visual">
+        <div class="mini-chart">
+          <div class="bar" style="height:30%"></div>
+          <div class="bar" style="height:45%"></div>
+          <div class="bar" style="height:35%"></div>
+          <div class="bar" style="height:55%"></div>
+          <div class="bar accent" style="height:90%"></div>
+          <div class="bar" style="height:60%"></div>
+          <div class="bar" style="height:40%"></div>
+          <div class="bar accent" style="height:85%"></div>
+          <div class="bar" style="height:50%"></div>
+          <div class="bar" style="height:65%"></div>
+          <div class="bar" style="height:30%"></div>
+          <div class="bar" style="height:70%"></div>
+          <div class="bar accent" style="height:95%"></div>
+          <div class="bar" style="height:45%"></div>
+          <div class="bar" style="height:55%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bento-card">
+      <div>
+        <div class="tag">Execution</div>
+        <h3>Betfair Exchange</h3>
+        <p>Live Application Key. Stream API for odds. REST API for orders. SSL cert auth for unattended operation.</p>
+      </div>
+    </div>
+
+    <div class="bento-card">
+      <div>
+        <div class="tag">Matching</div>
+        <h3>Fixture &rarr; Market</h3>
+        <p>Automatic mapping between Genius fixture IDs and Betfair market IDs. The bridge that makes it all work.</p>
+      </div>
+    </div>
+
+    <div class="bento-card">
+      <div>
+        <div class="tag">Reliability</div>
+        <h3>Always-on sessions</h3>
+        <p>Token refresh, reconnection logic, keep-alive scheduling. Your bot doesn't know what downtime means.</p>
+      </div>
+    </div>
+
+    <div class="bento-card wide">
+      <div>
+        <div class="tag">Monitoring</div>
+        <h3>Real-time P&L and position tracking</h3>
+        <p>Every trade logged. Every position tracked. Daily summaries, drawdown alerts, transaction cost monitoring against Betfair's 5,000/hr threshold.</p>
+      </div>
+      <div class="bento-visual">
+        <div class="data-rows">
+          <div class="data-row"><span class="label">Open positions</span><span class="value">4 markets</span></div>
+          <div class="data-row"><span class="label">Today P&L</span><span class="value">+&pound;127.40</span></div>
+          <div class="data-row"><span class="label">Transactions/hr</span><span class="value">842 / 5,000</span></div>
+          <div class="data-row"><span class="label">Avg execution</span><span class="value">186ms</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pipeline-section" id="pipeline">
+  <div class="pipeline-header">
+    <h2>The pipeline.</h2>
+    <p>From pitch event to exchange trade in one continuous flow.</p>
+  </div>
+  <div class="pipeline">
+    <div class="pipeline-step">
+      <div class="num">01 &mdash; INGEST</div>
+      <h3>Match event fires</h3>
+      <p>Genius Sports captures a goal, card, or momentum shift on the pitch. The event hits Ably and arrives in your pipeline within 250ms.</p>
+    </div>
+    <div class="pipeline-step">
+      <div class="num">02 &mdash; ANALYZE</div>
+      <h3>Strategy evaluates</h3>
+      <p>The signal is checked against your configured strategy rules. Market conditions are compared against the live Betfair order book in real time.</p>
+    </div>
+    <div class="pipeline-step">
+      <div class="num">03 &mdash; EXECUTE</div>
+      <h3>Trade is placed</h3>
+      <p>A placeOrders call fires to Betfair. The order is confirmed, position updated, and P&L recalculated — all within the same tick cycle.</p>
+    </div>
+  </div>
+</div>
+
+<div class="cta-section" id="cta">
+  <h2>This is how you trade now.</h2>
+  <p>Private access. Early development. Built for serious operators.</p>
+  <button class="btn-white">Request Early Access</button>
+</div>
+
+<footer>
+  <span>&copy; 2026 Bettrade</span>
+  <span>Built on Betfair Exchange &middot; Genius Sports</span>
+</footer>
+
+</body>
+</html>

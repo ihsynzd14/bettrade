@@ -29,9 +29,16 @@ export default function Hero() {
           </p>
 
           <div className="flex flex-wrap gap-3 pt-2">
-            <button className="px-6 py-2.5 rounded-md bg-sky-500 hover:bg-sky-400 text-white font-medium text-sm transition-colors cursor-pointer">
-              Request Access
-            </button>
+            <a
+              href="/fixtures"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md bg-sky-500 hover:bg-sky-400 text-white font-medium text-sm transition-colors"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+              </span>
+              View Live Fixtures
+            </a>
             <button className="px-6 py-2.5 rounded-md border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-zinc-50 font-medium text-sm transition-colors cursor-pointer">
               View Docs
             </button>

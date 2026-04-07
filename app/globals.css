@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* ─── Dark mode: class strategy for next-themes ────────── */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ─── Design tokens ─────────────────────────────────────── */
 @theme inline {
   /* Colors */
@@ -27,11 +30,116 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── CSS variables ─────────────────────────────────────── */
+/* ─── Theme variables ───────────────────────────────────── */
+
+/* Light mode (default) */
 :root {
+  --bg:      #f8fafc;
+  --surface: #f1f5f9;
+  --border:  #e2e8f0;
+  color-scheme: light;
+}
+
+/* Dark mode */
+.dark {
   --bg:      #09090b;
   --surface: #18181b;
   --border:  #27272a;
+  color-scheme: dark;
+}
+
+/* ─── Light-mode zinc remapping ─────────────────────────── *
+ *  Components use dark-first zinc classes (bg-zinc-950, text-zinc-50, etc.)
+ *  In light mode we invert the scale so the same classes produce light colors.
+ *  In dark mode the Tailwind defaults apply unchanged.
+ */
+:root {
+  /* backgrounds: dark zinc → light equivalents */
+  --color-zinc-950: #ffffff;
+  --color-zinc-900: #f8fafc;
+  --color-zinc-800: #e2e8f0;
+  --color-zinc-700: #cbd5e1;
+  --color-zinc-600: #94a3b8;
+  --color-zinc-500: #64748b;
+  --color-zinc-400: #475569;
+  --color-zinc-300: #334155;
+  --color-zinc-200: #1e293b;
+  --color-zinc-100: #0f172a;
+  --color-zinc-50:  #020617;
+}
+
+/* Dark: restore original Tailwind zinc scale */
+.dark {
+  --color-zinc-950: #09090b;
+  --color-zinc-900: #18181b;
+  --color-zinc-800: #27272a;
+  --color-zinc-700: #3f3f46;
+  --color-zinc-600: #52525b;
+  --color-zinc-500: #71717a;
+  --color-zinc-400: #a1a1aa;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-200: #e4e4e7;
+  --color-zinc-100: #f4f4f5;
+  --color-zinc-50:  #fafafa;
+}
+
+/* ─── Sky color adjustments for light mode ──────────────── */
+:root {
+  --color-sky-500: #0284c7;
+  --color-sky-400: #0369a1;
+}
+
+.dark {
+  --color-sky-500: #0ea5e9;
+  --color-sky-400: #38bdf8;
+}
+
+/* ─── Emerald adjustments for light mode ────────────────── */
+:root {
+  --color-emerald-400: #059669;
+  --color-emerald-500: #047857;
+}
+
+.dark {
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+}
+
+/* ─── Red adjustments for light mode ────────────────────── */
+:root {
+  --color-red-400: #dc2626;
+}
+
+.dark {
+  --color-red-400: #f87171;
+}
+
+/* ─── Rose adjustments for light mode (lay prices) ──────── */
+:root {
+  --color-rose-500: #e11d48;
+  --color-rose-400: #f43f5e;
+  --color-rose-950: #fff1f2;
+  --color-rose-900: #ffe4e6;
+}
+
+.dark {
+  --color-rose-500: #f43f5e;
+  --color-rose-400: #fb7185;
+  --color-rose-950: #4c0519;
+  --color-rose-900: #881337;
+}
+
+/* ─── Amber adjustments for light mode ──────────────────── */
+:root {
+  --color-amber-400: #d97706;
+  --color-amber-500: #b45309;
+  --color-amber-900: #fffbeb;
+}
+
+.dark {
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-900: #78350f;
 }
 
 /* ─── Base ──────────────────────────────────────────────── */
@@ -47,14 +155,29 @@ html {
 
 body {
   background-color: var(--bg);
-  color: #fafafa;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+:root body {
+  color: #0f172a;
+}
+
+.dark body {
+  color: #fafafa;
 }
 
 /* ─── Utilities ─────────────────────────────────────────── */
 
 /* Subtle grid overlay — used on hero */
-.bg-grid {
+:root .bg-grid {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.dark .bg-grid {
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
@@ -68,4 +191,20 @@ body {
 }
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/* ─── Smooth theme transitions ──────────────────────────── */
+*,
+*::before,
+*::after {
+  transition-property: color, background-color, border-color;
+  transition-duration: 0.15s;
+  transition-timing-function: ease;
+}
+
+/* Disable transitions on animated elements to avoid conflicts */
+.animate-ping,
+.animate-marquee,
+[class*="animate-"] {
+  transition-property: none !important;
 }

@@ -1,7 +1,30 @@
 import Nav from '@/components/nav'
 import FixturesTable from '@/components/fixtures-table'
 
-interface OverlappedFixture {
+interface RunnerPrice {
+  price: number
+  size: number
+}
+
+interface Runner {
+  name: string
+  selectionId: number
+  sortPriority: number
+  lastPriceTraded: number | null
+  totalMatched: number
+  back: RunnerPrice[]
+  lay: RunnerPrice[]
+}
+
+interface Market {
+  status: string
+  inplay: boolean
+  totalMatched: number
+  competition: string | null
+  runners: Runner[]
+}
+
+interface EnrichedFixture {
   matchId: string
   geniusId: string
   betfairEventId: string
@@ -11,13 +34,14 @@ interface OverlappedFixture {
   startTime: string
   status: string
   similarityScore: number
+  market: Market | null
 }
 
 interface EngineResponse {
   ok: boolean
   count: number
   lastUpdated: string | null
-  fixtures: OverlappedFixture[]
+  fixtures: EnrichedFixture[]
 }
 
 async function getFixtures(): Promise<EngineResponse> {
@@ -25,7 +49,6 @@ async function getFixtures(): Promise<EngineResponse> {
 
   try {
     const res = await fetch(`${engineUrl}/api/v1/fixtures/overlap`, {
-      // Revalidate every 60 seconds (matches engine polling interval)
       next: { revalidate: 60 },
     })
 

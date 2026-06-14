@@ -67,5 +67,6 @@ export type ScalpySSEEvent =
   | { type: 'full_time'; geniusId: string }
   | { type: 'bet_placed'; geniusId: string; data: BetPlacedData }
   | { type: 'bet_skipped'; geniusId: string; data: { reason: string; addedMinutes?: number } }
+  | { type: 'trade_matched'; data: { tradeId: string; matchedPrice: number | null } }
   | { type: 'trade_settled'; data: { tradeId: string; outcome: string; pnl: number; dryRun: boolean } }
   | { type: 'error'; geniusId: string; data: { message: string } }

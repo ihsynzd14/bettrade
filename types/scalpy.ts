@@ -6,7 +6,10 @@ export interface MatchState {
   betfairEventId: string
   betfairMarketId: string
   totalGoals: number
+  homeGoals: number
+  awayGoals: number
   phase: string | null
+  currentMinute: string | null
   bettingDone: boolean
   lastSeenTs: string | null
 }
@@ -62,7 +65,7 @@ export interface BetPlacedData {
 // SSE event types emitted by bettrade-engine
 export type ScalpySSEEvent =
   | { type: 'match_states'; data: MatchState[] }
-  | { type: 'goal'; geniusId: string; data: { totalGoals: number } }
+  | { type: 'goal'; geniusId: string; data: { totalGoals: number; homeGoals: number; awayGoals: number } }
   | { type: 'phase_change'; geniusId: string; data: { phase: string } }
   | { type: 'full_time'; geniusId: string }
   | { type: 'bet_placed'; geniusId: string; data: BetPlacedData }

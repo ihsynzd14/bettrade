@@ -40,7 +40,12 @@ export function useScalpyStream() {
           } else if (event.type === 'goal' || event.type === 'phase_change') {
             matchStates = matchStates.map(s => {
               if (s.geniusId !== event.geniusId) return s
-              if (event.type === 'goal') return { ...s, totalGoals: event.data.totalGoals }
+              if (event.type === 'goal') return {
+                ...s,
+                totalGoals: event.data.totalGoals,
+                homeGoals:  event.data.homeGoals,
+                awayGoals:  event.data.awayGoals,
+              }
               if (event.type === 'phase_change') return { ...s, phase: event.data.phase }
               return s
             })

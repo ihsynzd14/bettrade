@@ -60,12 +60,20 @@ export function ScalpyMatchCard({ state, betEvent }: Props) {
         </span>
       </div>
 
+      {/* Score + clock */}
+      <div className="flex items-baseline gap-3 font-mono">
+        <span className="text-lg font-bold text-white tabular-nums">
+          {state.homeGoals} <span className="text-zinc-500">–</span> {state.awayGoals}
+        </span>
+        {state.currentMinute && (
+          <span className="text-sm font-semibold text-emerald-400 tabular-nums">
+            {/^\d+$/.test(state.currentMinute) ? `${state.currentMinute}'` : state.currentMinute}
+          </span>
+        )}
+      </div>
+
       {/* Stats row */}
       <div className="flex items-center gap-4 text-xs font-mono text-zinc-400">
-        <span>
-          <span className="text-white font-semibold">{state.totalGoals}</span> goals
-        </span>
-        <span className="text-white/30">|</span>
         <span>Phase: <span className="text-zinc-200">{phaseLabel(state.phase)}</span></span>
         <span className="text-white/30">|</span>
         <span>Market: <span className="text-sky-400">{marketLabel}</span></span>

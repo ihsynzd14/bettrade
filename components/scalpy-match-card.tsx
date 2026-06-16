@@ -17,7 +17,7 @@ interface Props {
 }
 
 function goalCountToMarketLabel(totalGoals: number): string {
-  const n = Math.min(totalGoals, 5)
+  const n = Math.max(0, Math.floor(totalGoals))
   return `U/O ${n}.5`
 }
 

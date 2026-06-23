@@ -19,7 +19,7 @@ export function ScalpyTradesTable({ trades }: Props) {
   if (trades.length === 0) {
     return (
       <div className="text-center py-16 text-zinc-600 font-mono text-sm">
-        No trades yet. Scalpy is watching...
+        No bets placed today yet. Scalpy bets at 2nd-half stoppage time.
       </div>
     )
   }

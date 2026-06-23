@@ -104,6 +104,31 @@ export default function AdminPage() {
   const now = Date.now()
   const placedIn = (mins: number) =>
     log.filter((d) => d.action === 'PLACED' && now - new Date(d.ts).getTime() < mins * 60000).length
+  const blockedIn = (mins: number) =>
+    log.filter((d) => d.action === 'BLOCKED' && now - new Date(d.ts).getTime() < mins * 60000).length
+
+  // Toggle ONLY tracking-pause, without touching the kill state.
+  const togglePause = async () => {
+    setBusy(true)
+    try {
+      const r = await fetch(`${ENGINE}/api/scalpy/control`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ pauseTracking: !c?.trackingPaused }),
+      })
+      if (!r.ok) setErr(`pause → HTTP ${r.status}`)
+      await refresh()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'pause failed')
+    }
+    setBusy(false)
+  }
+
+  // Auto-kills (loss limit / circuit breaker) require explicit confirmation to resume.
+  const onResume = () => {
+    if (c?.killedBy === 'auto' && !window.confirm(`AUTO-KILL: "${c?.killReason}". Resume trading anyway?`)) return
+    sendControl('resume')
+  }
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -155,7 +180,7 @@ export default function AdminPage() {
             {killed ? (
               <button
                 disabled={busy}
-                onClick={() => sendControl('resume')}
+                onClick={onResume}
                 className="px-6 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono font-bold text-lg disabled:opacity-50"
               >
                 ▶ RESUME
@@ -173,11 +198,18 @@ export default function AdminPage() {
           <div className="mt-4 flex items-center gap-2">
             <button
               disabled={busy}
-              onClick={() => sendControl(killed ? 'resume' : 'kill', !c?.trackingPaused)}
-              className="text-xs font-mono px-3 py-1.5 rounded border border-white/10 text-zinc-400 hover:text-white"
+              onClick={togglePause}
+              className={`text-xs font-mono px-3 py-1.5 rounded border transition-colors ${
+                c?.trackingPaused
+                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-400'
+                  : 'border-white/10 text-zinc-400 hover:text-white'
+              }`}
             >
-              {c?.trackingPaused ? 'Tracking PAUSED — resume tracking' : 'Also pause tracking'}
+              {c?.trackingPaused ? '⏸ Tracking paused — resume tracking' : 'Pause tracking too'}
             </button>
+            <span className="text-[10px] font-mono text-zinc-600">
+              (Kill stops betting; pausing also stops watching new fixtures)
+            </span>
           </div>
         </div>
 
@@ -193,7 +225,9 @@ export default function AdminPage() {
             sub={liab ? `${liab.count} open bet${liab.count !== 1 ? 's' : ''}` : undefined} />
           <Stat label="Consecutive losses" value={String(c?.consecutiveLosses ?? 0)}
             valueClass={(c?.consecutiveLosses ?? 0) >= 3 ? 'text-amber-400' : 'text-white'} />
-          <Stat label="Bet rate" value={`${placedIn(5)} / 5m`} sub={`${placedIn(15)} in 15m`} />
+          <Stat label="Bet rate (5m)" value={`${placedIn(5)} placed`}
+            sub={`${blockedIn(5)} blocked · ${placedIn(15)} placed/15m`}
+            valueClass={placedIn(5) >= 10 ? 'text-amber-400' : 'text-white'} />
         </div>
 
         {/* Decision log */}

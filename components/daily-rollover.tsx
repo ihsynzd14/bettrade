@@ -24,11 +24,15 @@ export function DailyRollover() {
     }
     schedule()
 
+    // Also poll periodically so newly-placed/settled bets appear without a manual reload.
+    const interval = setInterval(() => router.refresh(), 20000)
+
     const onWake = () => { if (document.visibilityState === 'visible') router.refresh() }
     window.addEventListener('focus', onWake)
     document.addEventListener('visibilitychange', onWake)
     return () => {
       clearTimeout(timeout)
+      clearInterval(interval)
       window.removeEventListener('focus', onWake)
       document.removeEventListener('visibilitychange', onWake)
     }

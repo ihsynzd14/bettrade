@@ -26,6 +26,7 @@ export interface MatchState {
   estimatedStoppage: number | null
   watching: boolean
   ouBook: OuBook | null
+  pendingBet: { addedMinutes: number } | null
   bettingDone: boolean
   betPlaced: boolean
   tradeId: string | null

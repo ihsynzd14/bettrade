@@ -43,9 +43,11 @@ export function FixtureCardWithWatch({ state }: { state: MatchState }) {
     ? { label: 'BET PLACED', cls: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' }
     : !watching
       ? { label: 'PAUSED', cls: 'bg-zinc-600/40 text-zinc-400 border border-zinc-500/30' }
-      : state.bettingDone
-        ? { label: 'DONE', cls: 'bg-zinc-600/40 text-zinc-400' }
-        : { label: 'WATCHING', cls: 'bg-blue-500/20 text-blue-400 border border-blue-500/30' }
+      : state.pendingBet
+        ? { label: `DEFERRED ${state.pendingBet.addedMinutes}′`, cls: 'bg-amber-500/20 text-amber-400 border border-amber-500/30' }
+        : state.bettingDone
+          ? { label: 'DONE', cls: 'bg-zinc-600/40 text-zinc-400' }
+          : { label: 'WATCHING', cls: 'bg-blue-500/20 text-blue-400 border border-blue-500/30' }
 
   return (
     <motion.div

@@ -44,6 +44,8 @@ export function useScalpyStream() {
             case 'goal':
             case 'phase_change':
             case 'bet_placed':
+            case 'bet_deferred':
+            case 'bet_skipped':
             case 'ou_book':
             case 'watch_toggled': {
               const ev = event
@@ -55,7 +57,11 @@ export function useScalpyStream() {
                   case 'phase_change':
                     return { ...s, phase: ev.data.phase }
                   case 'bet_placed':
-                    return { ...s, bettingDone: true, betPlaced: true, tradeId: ev.data.tradeId }
+                    return { ...s, bettingDone: true, betPlaced: true, tradeId: ev.data.tradeId, pendingBet: null }
+                  case 'bet_deferred':
+                    return { ...s, pendingBet: { addedMinutes: ev.data.addedMinutes } }
+                  case 'bet_skipped':
+                    return { ...s, pendingBet: null }
                   case 'ou_book':
                     return { ...s, ouBook: ev.data }
                   case 'watch_toggled':

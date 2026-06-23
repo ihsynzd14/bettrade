@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { MatchState, ScalpySSEEvent, BetPlacedData } from '@/types/scalpy'
+import type { MatchState, ScalpySSEEvent } from '@/types/scalpy'
 
 interface ScalpyStreamState {
   matchStates: MatchState[]
@@ -24,9 +24,7 @@ export function useScalpyStream() {
     const es = new EventSource(`${ENGINE_URL}/api/scalpy/stream`)
     esRef.current = es
 
-    es.onopen = () => {
-      setState(prev => ({ ...prev, connected: true }))
-    }
+    es.onopen = () => setState(prev => ({ ...prev, connected: true }))
 
     es.onmessage = (e) => {
       try {
@@ -35,31 +33,44 @@ export function useScalpyStream() {
         setState(prev => {
           let { matchStates } = prev
 
-          if (event.type === 'match_states') {
-            matchStates = event.data
-          } else if (event.type === 'goal' || event.type === 'phase_change') {
-            matchStates = matchStates.map(s => {
-              if (s.geniusId !== event.geniusId) return s
-              if (event.type === 'goal') return {
-                ...s,
-                totalGoals: event.data.totalGoals,
-                homeGoals:  event.data.homeGoals,
-                awayGoals:  event.data.awayGoals,
-              }
-              if (event.type === 'phase_change') return { ...s, phase: event.data.phase }
-              return s
-            })
-          } else if (event.type === 'bet_placed') {
-            matchStates = matchStates.map(s =>
-              s.geniusId === event.geniusId ? { ...s, bettingDone: true } : s
-            )
+          switch (event.type) {
+            case 'match_states':
+              matchStates = event.data
+              break
+            case 'full_time':
+              // Live Fixtures: the match disappears at full time.
+              matchStates = matchStates.filter(s => s.geniusId !== event.geniusId)
+              break
+            case 'goal':
+            case 'phase_change':
+            case 'bet_placed':
+            case 'ou_book':
+            case 'watch_toggled': {
+              const ev = event
+              matchStates = matchStates.map(s => {
+                if (s.geniusId !== ev.geniusId) return s
+                switch (ev.type) {
+                  case 'goal':
+                    return { ...s, totalGoals: ev.data.totalGoals, homeGoals: ev.data.homeGoals, awayGoals: ev.data.awayGoals }
+                  case 'phase_change':
+                    return { ...s, phase: ev.data.phase }
+                  case 'bet_placed':
+                    return { ...s, bettingDone: true, betPlaced: true, tradeId: ev.data.tradeId }
+                  case 'ou_book':
+                    return { ...s, ouBook: ev.data }
+                  case 'watch_toggled':
+                    return { ...s, watching: ev.data.watching }
+                  default:
+                    return s
+                }
+              })
+              break
+            }
+            default:
+              break
           }
 
-          const recentEvents = [
-            { ts: Date.now(), event },
-            ...prev.recentEvents,
-          ].slice(0, 20)
-
+          const recentEvents = [{ ts: Date.now(), event }, ...prev.recentEvents].slice(0, 20)
           return { matchStates, recentEvents, connected: true }
         })
       } catch {
@@ -67,13 +78,9 @@ export function useScalpyStream() {
       }
     }
 
-    es.onerror = () => {
-      setState(prev => ({ ...prev, connected: false }))
-    }
+    es.onerror = () => setState(prev => ({ ...prev, connected: false }))
 
-    return () => {
-      es.close()
-    }
+    return () => es.close()
   }, [])
 
   return state

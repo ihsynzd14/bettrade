@@ -1,3 +1,15 @@
+// Under/Over book snapshot for the current score (UNDER runner)
+export interface OuBook {
+  marketId: string
+  marketType: string
+  threshold: number
+  underSelectionId: number
+  status: string | null
+  bbp: number | null // best back price
+  blp: number | null // best lay price
+  ltp: number | null // last traded price
+}
+
 // Match state as tracked by ScalpyEngine (in-memory)
 export interface MatchState {
   geniusId: string
@@ -5,12 +17,18 @@ export interface MatchState {
   awayTeam: string
   betfairEventId: string
   betfairMarketId: string
+  competition: string | null
   totalGoals: number
   homeGoals: number
   awayGoals: number
   phase: string | null
   currentMinute: string | null
+  estimatedStoppage: number | null
+  watching: boolean
+  ouBook: OuBook | null
   bettingDone: boolean
+  betPlaced: boolean
+  tradeId: string | null
   lastSeenTs: string | null
 }
 
@@ -70,6 +88,11 @@ export type ScalpySSEEvent =
   | { type: 'full_time'; geniusId: string }
   | { type: 'bet_placed'; geniusId: string; data: BetPlacedData }
   | { type: 'bet_skipped'; geniusId: string; data: { reason: string; addedMinutes?: number } }
+  | { type: 'bet_deferred'; geniusId: string; data: { addedMinutes: number; risks: string[] } }
+  | { type: 'bet_blocked'; geniusId: string; data: { reason: string; brake?: string; detail?: string } }
+  | { type: 'ou_book'; geniusId: string; data: OuBook }
+  | { type: 'watch_toggled'; geniusId: string; data: { watching: boolean } }
   | { type: 'trade_matched'; data: { tradeId: string; matchedPrice: number | null } }
   | { type: 'trade_settled'; data: { tradeId: string; outcome: string; pnl: number; dryRun: boolean } }
+  | { type: 'control_changed'; data: Record<string, unknown> }
   | { type: 'error'; geniusId: string; data: { message: string } }

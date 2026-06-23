@@ -24,7 +24,7 @@ export default function Nav() {
           </a>
 
           <a
-            href="/fixtures"
+            href="/live-fixtures"
             className="flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md bg-sky-500/10 border border-sky-500/30 text-sky-400 hover:bg-sky-500/20 hover:border-sky-400/50 hover:text-sky-300 transition-all"
           >
             <span className="relative flex h-2 w-2">

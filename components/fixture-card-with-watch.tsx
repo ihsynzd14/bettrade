@@ -91,9 +91,19 @@ export function FixtureCardWithWatch({ state }: { state: MatchState }) {
           {state.homeGoals} <span className="text-zinc-500">–</span> {state.awayGoals}
         </span>
         <span className="text-sm font-semibold text-emerald-400 tabular-nums">{minuteLabel(state.currentMinute)}</span>
-        {state.estimatedStoppage != null && state.estimatedStoppage > 0 && (
-          <span className="text-[11px] text-amber-400/80" title="Predicted added time (estimate)">est +{stoppage(state.estimatedStoppage)}</span>
-        )}
+        {(() => {
+          const est = state.estimatedStoppage
+          if (!est) return null
+          const parts: string[] = []
+          if (est.first > 0) parts.push(`1Y ${stoppage(est.first)}`)
+          if (est.second > 0) parts.push(`2Y ${stoppage(est.second)}`)
+          if (parts.length === 0) return null
+          return (
+            <span className="text-[11px] text-amber-400/80" title="Predicted added time per half (estimate)">
+              {parts.join(' · ')}
+            </span>
+          )
+        })()}
       </div>
 
       {/* Market + BBP / BLP / LTP */}

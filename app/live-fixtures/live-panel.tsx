@@ -5,8 +5,11 @@ import { FixtureCardWithWatch } from '@/components/fixture-card-with-watch'
 
 export function LiveFixturesPanel() {
   const { matchStates, connected } = useScalpyStream()
-  // Defensive: the engine removes FullTime matches, but hide any that slip through.
-  const live = matchStates.filter(s => s.phase !== 'FullTime')
+  // Show only fixtures we're actually receiving Genius event data for. A null minute means no
+  // timed events have arrived (feed not delivering) → we can't detect the stoppage announcement,
+  // so we can't bet on it. Hide those. (The engine keeps polling; the card appears the moment a
+  // timed event arrives, and once shown the minute never reverts to null so it won't flicker out.)
+  const live = matchStates.filter(s => s.phase !== 'FullTime' && s.currentMinute != null)
 
   return (
     <div className="space-y-4">

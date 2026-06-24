@@ -21,6 +21,7 @@ interface Status {
   control: Control
   dryRun: boolean
   liveArmed: boolean
+  manualArm: boolean
   openLiability: { total: number; count: number } | null
   brakes: Record<string, number | boolean> | null
   stake: number
@@ -61,6 +62,9 @@ const PauseIcon = ({ className = '' }: { className?: string }) => (
 )
 const AlertIcon = ({ className = '' }: { className?: string }) => (
   <svg viewBox="0 0 24 24" {...sw} className={className} aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
+)
+const TargetIcon = ({ className = '' }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" {...sw} className={className} aria-hidden="true"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>
 )
 
 export default function AdminPage() {
@@ -117,6 +121,7 @@ export default function AdminPage() {
   const c = status?.control
   const killed = !!c?.killed
   const dryRun = status?.dryRun ?? true
+  const manualArm = status?.manualArm ?? false
   const lossLimit = Number(status?.brakes?.dailyRealizedLossLimit ?? 20)
   const pnl = c?.realizedPnlToday ?? 0
   const lossPct = Math.min(100, Math.max(0, (-pnl / lossLimit) * 100))
@@ -146,6 +151,27 @@ export default function AdminPage() {
   const onResume = () => {
     if (c?.killedBy === 'auto' && !window.confirm(`AUTO-KILL: "${c?.killReason}". Resume trading anyway?`)) return
     sendControl('resume')
+  }
+
+  const toggleManualArm = async () => {
+    const next = !manualArm
+    const msg = next
+      ? 'Manual-arm ON: every tracked match becomes DISARMED. Only matches you arm with the eye will bet. Continue?'
+      : 'Manual-arm OFF: every tracked match becomes ARMED and can bet again. Continue?'
+    if (!window.confirm(msg)) return
+    setBusy(true)
+    try {
+      const r = await fetch(`${ENGINE}/api/scalpy/control`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ manualArm: next }),
+      })
+      if (!r.ok) setErr(`manual-arm → HTTP ${r.status}`)
+      await refresh()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'manual-arm failed')
+    }
+    setBusy(false)
   }
 
   const btn =
@@ -242,8 +268,20 @@ export default function AdminPage() {
                 <PauseIcon className="w-3.5 h-3.5" />
                 {c?.trackingPaused ? 'Tracking paused — resume tracking' : 'Pause tracking too'}
               </button>
+              <button
+                type="button" disabled={busy} onClick={toggleManualArm}
+                aria-label="Toggle manual-arm mode"
+                className={`${btn} text-xs px-3 py-1.5 rounded-lg border focus-visible:ring-sky-400 ${
+                  manualArm
+                    ? 'border-sky-500/40 bg-sky-500/10 text-sky-300'
+                    : 'border-white/10 text-zinc-400 hover:text-white hover:border-white/20'
+                }`}
+              >
+                <TargetIcon className="w-3.5 h-3.5" />
+                {manualArm ? 'Manual-arm ON — arm matches with the eye' : 'Manual-arm: test one match first'}
+              </button>
               <span className="text-[10px] font-mono text-zinc-600">
-                Kill stops betting; pausing also stops watching new fixtures.
+                Kill stops betting; pausing also stops watching new fixtures. Manual-arm disarms every match until you arm it.
               </span>
             </div>
           </div>

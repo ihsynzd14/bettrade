@@ -23,7 +23,7 @@ export interface MatchState {
   awayGoals: number
   phase: string | null
   currentMinute: string | null
-  estimatedStoppage: number | null
+  estimatedStoppage: number | null // predicted added time for the current phase, in SECONDS (card renders M:SS)
   watching: boolean
   ouBook: OuBook | null
   pendingBet: { addedMinutes: number } | null

@@ -15,6 +15,13 @@ function price(p: number | null | undefined): string {
   return p == null ? '—' : p.toFixed(2)
 }
 
+// Predicted added-time total (seconds) → "M:SS", matching the live system's display (e.g. 406 → "6:46").
+function stoppage(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return s > 0 ? `${m}:${s.toString().padStart(2, '0')}` : `${m}m`
+}
+
 export function FixtureCardWithWatch({ state }: { state: MatchState }) {
   const [busy, setBusy] = useState(false)
   const watching = state.watching !== false
@@ -85,7 +92,7 @@ export function FixtureCardWithWatch({ state }: { state: MatchState }) {
         </span>
         <span className="text-sm font-semibold text-emerald-400 tabular-nums">{minuteLabel(state.currentMinute)}</span>
         {state.estimatedStoppage != null && state.estimatedStoppage > 0 && (
-          <span className="text-[11px] text-amber-400/80" title="Predicted added time (estimate)">est +{state.estimatedStoppage}′</span>
+          <span className="text-[11px] text-amber-400/80" title="Predicted added time (estimate)">est +{stoppage(state.estimatedStoppage)}</span>
         )}
       </div>
 

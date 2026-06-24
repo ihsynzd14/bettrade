@@ -84,8 +84,8 @@ export function FixtureCardWithWatch({ state }: { state: MatchState }) {
           {state.homeGoals} <span className="text-zinc-500">–</span> {state.awayGoals}
         </span>
         <span className="text-sm font-semibold text-emerald-400 tabular-nums">{minuteLabel(state.currentMinute)}</span>
-        {state.estimatedStoppage != null && (
-          <span className="text-[11px] text-amber-400/80">+{state.estimatedStoppage}′ added</span>
+        {state.estimatedStoppage != null && state.estimatedStoppage > 0 && (
+          <span className="text-[11px] text-amber-400/80" title="Predicted added time (estimate)">est +{state.estimatedStoppage}′</span>
         )}
       </div>
 

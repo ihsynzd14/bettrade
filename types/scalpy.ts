@@ -45,6 +45,8 @@ export interface ScalpyTrade {
   home_team: string
   away_team: string
   total_goals: number
+  home_goals: number | null  // score at bet time (home)
+  away_goals: number | null  // score at bet time (away)
   added_minutes: number
   market_type: string        // e.g. "OVER_UNDER_25"
   selection: string          // "UNDER" | "OVER"

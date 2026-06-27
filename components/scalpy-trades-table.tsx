@@ -45,12 +45,15 @@ export function ScalpyTradesTable({ trades }: Props) {
                 <div className="text-zinc-600 text-[10px]">
                   {trade.added_minutes}min stoppage
                   {trade.bust_goals && trade.outcome !== 'WON' && (
-                    <span className="text-rose-400/90" title="Goal(s) that busted the Under (official clock)"> · ⚽ {trade.bust_goals.replace(/,/g, ', ')}</span>
+                    <span className="text-rose-400/90" title="Goal(s) that busted the Under — clock + score"> · ⚽ {trade.bust_goals}</span>
                   )}
                 </div>
               </td>
               <td className="py-2.5 pr-4 text-sky-400">
                 {trade.market_type.replace('OVER_UNDER_', 'U/O ').replace(/(\d)(\d)$/, '$1.$2')}
+                {trade.home_goals != null && trade.away_goals != null && (
+                  <span className="text-zinc-400" title="Score when the bet was placed"> ({trade.home_goals}-{trade.away_goals})</span>
+                )}
                 <div className="text-zinc-500">{trade.selection}</div>
               </td>
               <td className="py-2.5 pr-4">

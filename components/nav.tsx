@@ -17,6 +17,13 @@ export default function Nav() {
           </a>
 
           <a
+            href="/results"
+            className="text-sm font-mono text-zinc-400 hover:text-white transition-colors px-3 py-1.5"
+          >
+            Results
+          </a>
+
+          <a
             href="/admin"
             className="text-sm font-mono text-zinc-500 hover:text-rose-400 transition-colors px-3 py-1.5"
           >

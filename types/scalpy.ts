@@ -56,6 +56,7 @@ export interface ScalpyTrade {
   status: 'PENDING' | 'MATCHED' | 'SETTLED' | 'SKIPPED' | 'FAILED'
   outcome: 'WON' | 'LOST' | null
   pnl: number | null
+  bust_goals: string | null  // running-clock time(s) of the goal(s) that busted the Under, e.g. "92:15"
   created_at: string
   settled_at: string | null
 }
@@ -93,6 +94,7 @@ export type ScalpySSEEvent =
   | { type: 'bet_blocked'; geniusId: string; data: { reason: string; brake?: string; detail?: string } }
   | { type: 'ou_book'; geniusId: string; data: OuBook }
   | { type: 'watch_toggled'; geniusId: string; data: { watching: boolean } }
+  | { type: 'bust_goal'; geniusId: string; data: { tradeId: string; clock: string } }
   | { type: 'trade_matched'; data: { tradeId: string; matchedPrice: number | null } }
   | { type: 'trade_settled'; data: { tradeId: string; outcome: string; pnl: number; dryRun: boolean } }
   | { type: 'control_changed'; data: Record<string, unknown> }

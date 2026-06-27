@@ -42,7 +42,12 @@ export function ScalpyTradesTable({ trades }: Props) {
               </td>
               <td className="py-2.5 pr-4 text-white">
                 {trade.home_team} v {trade.away_team}
-                <div className="text-zinc-600 text-[10px]">{trade.added_minutes}min stoppage</div>
+                <div className="text-zinc-600 text-[10px]">
+                  {trade.added_minutes}min stoppage
+                  {trade.bust_goals && trade.outcome !== 'WON' && (
+                    <span className="text-rose-400/90" title="Goal(s) that busted the Under (official clock)"> · ⚽ {trade.bust_goals.replace(/,/g, ', ')}</span>
+                  )}
+                </div>
               </td>
               <td className="py-2.5 pr-4 text-sky-400">
                 {trade.market_type.replace('OVER_UNDER_', 'U/O ').replace(/(\d)(\d)$/, '$1.$2')}

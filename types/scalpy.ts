@@ -59,6 +59,7 @@ export interface ScalpyTrade {
   outcome: 'WON' | 'LOST' | null
   pnl: number | null
   bust_goals: string | null  // running-clock time(s) of the goal(s) that busted the Under, e.g. "92:15"
+  stoppage_log: string | null // full post-90' event + decision timeline (newline-joined)
   created_at: string
   settled_at: string | null
 }

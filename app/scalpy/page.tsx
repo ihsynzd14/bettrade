@@ -35,21 +35,27 @@ export default async function ScalpyPage() {
     <>
       <Nav />
       <DailyRollover />
-      <main className="pt-14 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+      <main className="relative pt-14 min-h-screen">
+        <div className="pointer-events-none fixed inset-0 bg-grid opacity-40" />
+        <div className="pointer-events-none fixed inset-x-0 top-14 h-64 bg-[radial-gradient(60%_100%_at_50%_0%,var(--color-accent-glow),transparent)]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 space-y-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-mono font-bold text-white">Scalpy</h1>
+              <h1 className="flex items-center gap-2.5 text-2xl font-mono font-bold tracking-tight text-white">
+                <span className="h-5 w-1 rounded-full" style={{ background: 'var(--sc-accent)' }} />Scalpy
+              </h1>
               <p className="text-sm text-zinc-500 font-mono mt-1">Bets placed today · Betfair U/O stoppage-time bot</p>
             </div>
-            <div className="text-xs font-mono text-zinc-600">{new Date().toLocaleString('en-GB')}</div>
+            <div className="text-[11px] font-mono text-zinc-500 tabular-nums px-2.5 py-1 rounded-md border border-white/10">{new Date().toLocaleString('en-GB')}</div>
           </div>
 
           <ScalpySummaryBar summary={summary} />
 
           <section>
-            <h2 className="text-sm font-mono font-semibold text-zinc-400 uppercase tracking-wider mb-3">Bets Today</h2>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <h2 className="flex items-center gap-2 text-[11px] font-mono font-semibold text-zinc-400 uppercase tracking-[0.14em] mb-3">
+              <span className="sc-live-dot text-sky-400" />Bets Today<span className="ml-3 h-px flex-1 bg-white/10" />
+            </h2>
+            <div className="sc-card p-1.5 sm:p-2">
               <ScalpyTradesTable trades={trades} />
             </div>
           </section>

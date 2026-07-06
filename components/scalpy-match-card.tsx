@@ -38,71 +38,75 @@ export function ScalpyMatchCard({ state, betEvent }: Props) {
   const marketLabel = goalCountToMarketLabel(state.totalGoals)
 
   const statusBadge = (() => {
-    if (state.phase === 'FullTime') return { label: 'FULL TIME', cls: 'bg-zinc-700 text-zinc-300' }
-    if (!state.bettingDone) return { label: 'WATCHING', cls: 'bg-blue-500/20 text-blue-400 border border-blue-500/30' }
-    if (betEvent) return { label: 'BET PLACED', cls: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' }
-    return { label: 'SKIPPED', cls: 'bg-zinc-600/40 text-zinc-400' }
+    if (state.phase === 'FullTime') return { label: 'FULL TIME', cls: 'sc-pill-neutral', live: false }
+    if (!state.bettingDone) return { label: 'WATCHING', cls: 'sc-pill-accent', live: true }
+    if (betEvent) return { label: 'BET PLACED', cls: 'sc-pill-pos', live: false }
+    return { label: 'SKIPPED', cls: 'sc-pill-neutral', live: false }
   })()
+
+  const ribbon = state.phase === 'FullTime' ? 'sc-ribbon-idle'
+    : !state.bettingDone ? 'sc-ribbon-accent'
+    : betEvent ? 'sc-ribbon-pos'
+    : 'sc-ribbon-idle'
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-4 space-y-3"
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="sc-card overflow-hidden p-4"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="font-mono text-sm font-semibold text-white">
-          {state.homeTeam} <span className="text-zinc-400">v</span> {state.awayTeam}
-        </div>
-        <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${statusBadge.cls}`}>
-          {statusBadge.label}
-        </span>
-      </div>
+      <span className={`sc-ribbon ${ribbon}`} />
 
-      {/* Score + clock */}
-      <div className="flex items-baseline gap-3 font-mono">
-        <span className="text-lg font-bold text-white tabular-nums">
-          {state.homeGoals} <span className="text-zinc-500">–</span> {state.awayGoals}
-        </span>
-        {state.currentMinute && (
-          <span className="text-sm font-semibold text-emerald-400 tabular-nums">
-            {/^\d+$/.test(state.currentMinute) ? `${state.currentMinute}'` : state.currentMinute}
-          </span>
-        )}
-      </div>
-
-      {/* Stats row */}
-      <div className="flex items-center gap-4 text-xs font-mono text-zinc-400">
-        <span>Phase: <span className="text-zinc-200">{phaseLabel(state.phase)}</span></span>
-        <span className="text-white/30">|</span>
-        <span>Market: <span className="text-sky-400">{marketLabel}</span></span>
-      </div>
-
-      {/* Bet details (shown when bet placed) */}
-      {betEvent && (
-        <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2">
-          <div className="flex items-center justify-between">
-            <div className="text-xs font-mono text-emerald-300">
-              <span className={betEvent.side === 'BACK' ? 'text-sky-400' : 'text-rose-400'}>
-                {betEvent.side}
-              </span>
-              {' '}{betEvent.selection} @ {betEvent.price.toFixed(2)}{' '}
-              <span className="text-zinc-400">(£{betEvent.stake})</span>
-              {' '}· {betEvent.addedMinutes}min stoppage
-            </div>
-            {betEvent.dryRun && (
-              <span className="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                DRY RUN
-              </span>
-            )}
+      <div className="space-y-3">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="font-mono text-sm font-semibold text-zinc-100">
+            {state.homeTeam} <span className="text-zinc-500">v</span> {state.awayTeam}
           </div>
+          <span className={`sc-pill sc-pill-round shrink-0 ${statusBadge.cls}`}>
+            {statusBadge.live && <span className="sc-live-dot" />}
+            {statusBadge.label}
+          </span>
         </div>
-      )}
 
-      {/* Genius ID (debug) */}
-      <div className="text-[10px] font-mono text-zinc-600">
-        geniusId: {state.geniusId}
+        {/* Score + clock */}
+        <div className="flex items-baseline gap-3 font-mono">
+          <span className="text-2xl sm:text-3xl sc-money text-zinc-50 leading-none tabular-nums">
+            {state.homeGoals} <span className="text-zinc-500">–</span> {state.awayGoals}
+          </span>
+          {state.currentMinute && (
+            <span className="text-sm font-semibold text-emerald-400 tabular-nums px-1.5 py-0.5 rounded bg-[var(--sc-pos-soft)]">
+              {/^\d+$/.test(state.currentMinute) ? `${state.currentMinute}'` : state.currentMinute}
+            </span>
+          )}
+        </div>
+
+        {/* Stats row */}
+        <div className="flex items-center gap-3 text-xs font-mono text-zinc-500">
+          <span>Phase: <span className="text-zinc-200">{phaseLabel(state.phase)}</span></span>
+          <span className="h-3 w-px bg-white/10" />
+          <span>Market: <span className="text-sky-400">{marketLabel}</span></span>
+        </div>
+
+        {/* Bet details (shown when bet placed) */}
+        {betEvent && (
+          <div className="rounded-lg bg-[var(--sc-pos-soft)] border border-emerald-500/25 px-3 py-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-xs font-mono text-emerald-500">
+                <span className={`sc-pill align-middle ${betEvent.side === 'BACK' ? 'sc-pill-accent' : 'sc-pill-neg'}`}>
+                  {betEvent.side}
+                </span>
+                {' '}{betEvent.selection} @ {betEvent.price.toFixed(2)}{' '}
+                <span className="text-zinc-400">(£{betEvent.stake})</span>
+                {' '}· {betEvent.addedMinutes}min stoppage
+              </div>
+              {betEvent.dryRun && (
+                <span className="sc-pill sc-pill-warn sc-pill-round shrink-0">DRY RUN</span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   )

@@ -60,6 +60,8 @@ export interface ScalpyTrade {
   pnl: number | null
   bust_goals: string | null  // running-clock time(s) of the goal(s) that busted the Under, e.g. "92:15"
   stoppage_log: string | null // full post-90' event + decision timeline (newline-joined)
+  strategy: 'stoppage' | 'friendly' // which strategy placed the bet
+  first_half_added: number | null   // 1st-half added minutes used for friendly pricing
   created_at: string
   settled_at: string | null
 }
@@ -81,7 +83,10 @@ export interface BetPlacedData {
   price: number
   stake: number
   marketType: string
-  addedMinutes: number
+  addedMinutes: number     // stoppage: effective rung · friendly: the 87/88/89 mark
+  announcedMinutes?: number
+  strategy?: 'stoppage' | 'friendly'
+  firstHalfAdded?: number  // friendly: 1st-half added minutes
   dryRun: boolean
 }
 

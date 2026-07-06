@@ -208,3 +208,132 @@ body {
 [class*="animate-"] {
   transition-property: none !important;
 }
+
+/* ============================================================
+   SCALPY PREMIUM — terminal surface system (VISUAL ONLY)
+   Layered elevation + hairlines + one signal accent. Dark-first
+   with :root (light) fallbacks so the remapped-zinc components
+   degrade correctly in both themes. New --sc-* tokens only.
+   ============================================================ */
+
+/* ---- Elevation + hairline tokens (light defaults) ---------- */
+:root {
+  --sc-elev-1:      #ffffff;                  /* base card plane            */
+  --sc-elev-2:      #f8fafc;                  /* raised / hero plane        */
+  --sc-hairline:    rgba(15, 23, 42, 0.08);   /* 1px card border            */
+  --sc-hairline-2:  rgba(15, 23, 42, 0.05);   /* inner dividers             */
+  --sc-tophi:       rgba(255, 255, 255, 0.9); /* machined top inner-highlight */
+  --sc-shadow:      0 1px 2px rgba(15,23,42,.06), 0 8px 24px -12px rgba(15,23,42,.12);
+  --sc-shadow-lift: 0 2px 4px rgba(15,23,42,.06), 0 16px 36px -14px rgba(15,23,42,.18);
+  --sc-shadow-hero: 0 1px 2px rgba(15,23,42,.06), 0 18px 40px -16px rgba(2,132,199,.18);
+  --sc-accent:      #0284c7;                  /* matches light --color-sky-500 */
+  --sc-accent-soft: rgba(2,132,199,.10);
+  --sc-pos-soft:    rgba(5,150,105,.10);
+  --sc-neg-soft:    rgba(220,38,38,.08);
+  --sc-violet-bg:   #7c3aed;                  /* friendly pill — dark violet, readable on light */
+  --sc-violet-fg:   #6d28d9;
+  --sc-ease:        cubic-bezier(.16,1,.3,1); /* shared entrance/hover curve */
+}
+.dark {
+  --sc-elev-1:      #101014;                  /* card sits above #09090b bg */
+  --sc-elev-2:      #16161c;                  /* hero plane, slightly lifted */
+  --sc-hairline:    rgba(255, 255, 255, 0.07);
+  --sc-hairline-2:  rgba(255, 255, 255, 0.045);
+  --sc-tophi:       rgba(255, 255, 255, 0.05);
+  --sc-shadow:      0 1px 0 rgba(255,255,255,.02), 0 12px 32px -16px rgba(0,0,0,.8);
+  --sc-shadow-lift: 0 1px 0 rgba(255,255,255,.03), 0 20px 44px -18px rgba(0,0,0,.9);
+  --sc-shadow-hero: 0 1px 0 rgba(255,255,255,.03), 0 20px 48px -18px rgba(0,0,0,.9), 0 0 0 1px rgba(14,165,233,.06);
+  --sc-accent:      #0ea5e9;
+  --sc-accent-soft: rgba(14,165,233,.12);
+  --sc-pos-soft:    rgba(16,185,129,.10);
+  --sc-neg-soft:    rgba(244,63,94,.10);
+  --sc-violet-bg:   #8b5cf6;
+  --sc-violet-fg:   #c4b5fd;
+}
+
+/* ---- Terminal card: hairline + machined top-highlight ------ */
+.sc-card {
+  position: relative;
+  background: var(--sc-elev-1);
+  border: 1px solid var(--sc-hairline);
+  border-radius: 0.875rem;                    /* 14px — premium bump from xl */
+  box-shadow: var(--sc-shadow);
+}
+.sc-card::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(var(--sc-tophi), transparent) top/100% 40% no-repeat;
+  -webkit-mask: linear-gradient(#000, transparent) top/100% 1px no-repeat;
+          mask: linear-gradient(#000, transparent) top/100% 1px no-repeat;
+  pointer-events: none;
+}
+.sc-card-hero { background: var(--sc-elev-2); box-shadow: var(--sc-shadow-hero); }
+
+/* Shared hover-lift (one easing curve, reused everywhere) */
+.sc-lift { transition: transform .16s var(--sc-ease), box-shadow .16s var(--sc-ease); will-change: transform; }
+.sc-lift:hover { transform: translateY(-2px); box-shadow: var(--sc-shadow-lift); }
+
+/* Left signal strip (table rows / hero card / day rows) */
+.sc-strip-pos    { box-shadow: inset 3px 0 0 var(--color-emerald-400); }
+.sc-strip-neg    { box-shadow: inset 3px 0 0 var(--color-rose-400); }
+.sc-strip-accent { box-shadow: inset 3px 0 0 var(--sc-accent); }
+/* When the strip sits on an elevated card (the summary hero), box-shadow is
+   not additive — compose the inset strip with the card shadow explicitly so
+   the hero keeps its elevation at rest, not only on hover. */
+.sc-card.sc-strip-pos { box-shadow: inset 3px 0 0 var(--color-emerald-400), var(--sc-shadow-hero); }
+.sc-card.sc-strip-neg { box-shadow: inset 3px 0 0 var(--color-rose-400), var(--sc-shadow-hero); }
+
+/* Top signal ribbon for cards */
+.sc-ribbon { position: absolute; inset-inline: 0; top: 0; height: 2px; border-radius: .875rem .875rem 0 0; }
+.sc-ribbon-accent { background: var(--sc-accent); }
+.sc-ribbon-pos    { background: var(--color-emerald-400); }
+.sc-ribbon-idle   { background: var(--sc-hairline); }
+
+/* ---- Unified pill dialect (Side/Status/Outcome/Mode/Friendly) */
+.sc-pill {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .1rem .4rem; border-radius: .3rem;
+  font-size: 10px; line-height: 1.4;
+  font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  font-family: var(--font-mono);
+  border: 1px solid transparent; white-space: nowrap;
+}
+.sc-pill-accent  { background: var(--sc-accent-soft); color: var(--sc-accent);        border-color: color-mix(in srgb, var(--sc-accent) 30%, transparent); }
+.sc-pill-pos     { background: var(--sc-pos-soft);    color: var(--color-emerald-400); border-color: color-mix(in srgb, var(--color-emerald-400) 28%, transparent); }
+.sc-pill-neg     { background: var(--sc-neg-soft);    color: var(--color-rose-400);    border-color: color-mix(in srgb, var(--color-rose-400) 28%, transparent); }
+.sc-pill-warn    { background: color-mix(in srgb, var(--color-amber-400) 14%, transparent); color: var(--color-amber-400); border-color: color-mix(in srgb, var(--color-amber-400) 30%, transparent); }
+.sc-pill-neutral { background: color-mix(in srgb, var(--color-zinc-500) 14%, transparent); color: var(--color-zinc-400);  border-color: var(--sc-hairline); }
+.sc-pill-violet  { background: color-mix(in srgb, var(--sc-violet-bg) 16%, transparent); color: var(--sc-violet-fg); border-color: color-mix(in srgb, var(--sc-violet-bg) 30%, transparent); }
+.sc-pill-round   { border-radius: 9999px; }   /* opt-in pill shape for cards */
+
+/* ---- Live pulse dot (shared by nav / cards / pending) ------- */
+.sc-live-dot { position: relative; display: inline-flex; height: .5rem; width: .5rem; }
+.sc-live-dot::before { content: ""; position: absolute; inset: 0; border-radius: 9999px;
+  background: currentColor; opacity: .75; animation: scPing 1.6s cubic-bezier(0,0,.2,1) infinite; }
+.sc-live-dot::after  { content: ""; position: relative; height: .5rem; width: .5rem; border-radius: 9999px; background: currentColor; }
+@keyframes scPing { 75%,100% { transform: scale(2); opacity: 0; } }
+
+/* ---- Money hero: tight tabular numerics -------------------- */
+.sc-money { font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em; font-weight: 700; }
+
+/* ---- Active-nav underline (fintech terminal tab) ----------- */
+.sc-navlink { position: relative; }
+.sc-navlink[data-active="true"]::after {
+  content: ""; position: absolute; left: .75rem; right: .75rem; bottom: -1px; height: 2px;
+  border-radius: 2px; background: var(--sc-accent);
+  box-shadow: 0 0 8px var(--color-accent-glow);
+}
+
+/* ---- Staggered entrance for card grids / rows -------------- */
+@keyframes scRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.sc-rise { animation: scRise .45s var(--sc-ease) both; }
+
+/* Respect reduced motion for every added animation. The .sc-*
+   names are unaffected by the [class*="animate-"] rule above and
+   drive `animation`, not `transition`, so both systems coexist. */
+@media (prefers-reduced-motion: reduce) {
+  .sc-rise, .sc-live-dot::before { animation: none !important; }
+  .sc-lift { transition: none; }
+}

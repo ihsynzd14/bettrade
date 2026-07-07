@@ -30,7 +30,7 @@ interface Status {
 interface Decision {
   ts: string
   match?: string
-  action: 'PLACED' | 'SKIPPED' | 'BLOCKED' | 'DEFERRED'
+  action: 'PLACED' | 'SKIPPED' | 'BLOCKED' | 'DEFERRED' | 'ANNOUNCE' | 'ENGINE' | 'ERROR'
   reason?: string
   brake?: string
   detail?: string
@@ -44,6 +44,9 @@ const actionColor: Record<string, string> = {
   BLOCKED: 'text-rose-400',
   SKIPPED: 'text-zinc-400',
   DEFERRED: 'text-amber-400',
+  ANNOUNCE: 'text-sky-400',   // 2nd-half stoppage announcement seen by the engine
+  ENGINE: 'text-violet-300',  // engine (re)start marker
+  ERROR: 'text-rose-400',
 }
 
 // ── Inline SVG icons (Lucide-style, no emoji) ──────────────────────────────

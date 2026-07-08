@@ -22,13 +22,12 @@ export default async function ResultsPage() {
       <Nav />
       <main className="relative pt-14 min-h-screen">
         <div className="pointer-events-none fixed inset-0 bg-grid opacity-40" />
-        <div className="pointer-events-none fixed inset-x-0 top-14 h-64 bg-[radial-gradient(60%_100%_at_50%_0%,var(--color-accent-glow),transparent)]" />
+        <div aria-hidden className="pointer-events-none fixed -top-32 right-[-10%] w-[600px] h-[600px] rounded-full sc-glow-orb" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 space-y-6">
           <div>
-            <h1 className="flex items-center gap-2.5 text-2xl font-mono font-bold tracking-tight text-white">
-              <span className="h-5 w-1 rounded-full" style={{ background: 'var(--sc-accent)' }} />Results
-            </h1>
-            <p className="text-sm text-zinc-500 font-mono mt-1">Day-by-day P&amp;L — click a day to see its bets</p>
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-sky-400 mb-3">Track Record</p>
+            <h1 className="font-sans font-bold text-3xl sm:text-4xl tracking-tight text-zinc-50">Results</h1>
+            <p className="font-sans text-sm text-zinc-400 mt-2">Day-by-day P&amp;L — click a day to see its bets</p>
           </div>
           <ResultsByDay trades={trades} />
         </div>

@@ -38,24 +38,34 @@ export function ScalpySummaryBar({ summary }: Props) {
     },
   ]
 
+  // One instrument band, hairline-divided cells (the homepage stats-band anatomy) —
+  // not a stack of identical cards. Cell borders per index: 2x2 on mobile, 1x4 from sm.
+  const cellBorders = [
+    'border-b sm:border-b-0 border-r',
+    'border-b sm:border-b-0 sm:border-r',
+    'border-r',
+    '',
+  ]
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {stats.map(({ label, value, valueClass, hero }, i) => (
-        <div
-          key={label}
-          className={`sc-card sc-rise sc-lift px-4 py-3.5 space-y-1.5 ${hero ? 'sc-card-hero' : ''} ${hero ? (summary.totalPnl >= 0 ? 'sc-strip-pos' : 'sc-strip-neg') : ''}`}
-          style={{ animationDelay: `${i * 60}ms` }}
-        >
-          <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.14em]">{label}</div>
+    <div className="sc-card sc-rise overflow-hidden">
+      <div className="grid grid-cols-2 sm:grid-cols-4">
+        {stats.map(({ label, value, valueClass, hero }, i) => (
           <div
-            className={hero
-              ? `text-3xl sm:text-4xl sc-money leading-none ${valueClass}`
-              : `text-xl sm:text-2xl sc-money ${valueClass ?? 'text-zinc-100'}`}
+            key={label}
+            className={`flex flex-col gap-1.5 px-4 py-4 sm:py-5 border-[var(--sc-hairline)] ${cellBorders[i]} ${hero ? (summary.totalPnl >= 0 ? 'sc-strip-pos' : 'sc-strip-neg') : ''}`}
           >
-            {value}
+            <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.15em]">{label}</div>
+            <div
+              className={hero
+                ? `text-3xl sm:text-4xl sc-money leading-none ${valueClass}`
+                : `text-xl sm:text-2xl sc-money ${valueClass ?? 'text-zinc-100'}`}
+            >
+              {value}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }

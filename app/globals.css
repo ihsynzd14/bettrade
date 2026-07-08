@@ -330,10 +330,47 @@ body {
 @keyframes scRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .sc-rise { animation: scRise .45s var(--sc-ease) both; }
 
+/* ---- Accent glow orb (homepage hero dialect, theme-aware) --- */
+.sc-glow-orb {
+  background: radial-gradient(circle, var(--sc-accent) 0%, transparent 70%);
+  opacity: 0.12;                       /* restrained on light */
+}
+.dark .sc-glow-orb { opacity: 0.2; }   /* homepage opacity-20 parity */
+
+/* ---- Row entrance: opacity-only (safe on <tr>, no transform) */
+@keyframes scFadeRow { from { opacity: 0; } to { opacity: 1; } }
+.sc-row-in { animation: scFadeRow .5s var(--sc-ease) both; }
+
+/* ---- Terminal window (expanded post-90' timelines) ---------- */
+.sc-terminal {
+  overflow: hidden;
+  border: 1px solid var(--sc-hairline);
+  border-radius: 0.5rem;
+  background: var(--sc-elev-1);
+}
+.sc-terminal-bar {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .375rem .75rem;
+  border-bottom: 1px solid var(--sc-hairline);
+  background: color-mix(in srgb, var(--color-zinc-500) 6%, transparent);
+}
+
+/* ---- Terminal nav rail (fixed header) ----------------------- *
+ * Unlayered on purpose: the global theme-transition rule above
+ * (also unlayered) overrides Tailwind's layered transition
+ * utilities, so nav motion must be declared here to actually run.
+ * Timing-only — a single definition covers both themes.          */
+.sc-navrail  { transition: background-color .3s var(--sc-ease), box-shadow .3s var(--sc-ease); }
+/* Tailwind v4 writes its translate, scale and rotate utilities to the NATIVE CSS
+   translate/scale/rotate properties (not transform) — transition those explicitly
+   or nothing animates. */
+.sc-navpop   { transition: opacity .25s var(--sc-ease), translate .25s var(--sc-ease), scale .25s var(--sc-ease); }
+.sc-nav-motion { transition: rotate .3s var(--sc-ease), translate .3s var(--sc-ease), scale .3s var(--sc-ease), transform .3s var(--sc-ease); }
+
 /* Respect reduced motion for every added animation. The .sc-*
    names are unaffected by the [class*="animate-"] rule above and
    drive `animation`, not `transition`, so both systems coexist. */
 @media (prefers-reduced-motion: reduce) {
-  .sc-rise, .sc-live-dot::before { animation: none !important; }
-  .sc-lift { transition: none; }
+  .sc-rise, .sc-live-dot::before, .sc-row-in { animation: none !important; }
+  .sc-lift, .sc-navpop, .sc-nav-motion { transition: none; }
 }

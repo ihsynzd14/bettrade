@@ -18,6 +18,16 @@ function pnlClass(pnl: number | null): string {
   return pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
 }
 
+// Status as bare colored mono text — the homepage execution-panel dialect
+// (pills are reserved for the two identity chips: Friendly and Outcome).
+const STATUS_TEXT: Record<ScalpyTrade['status'], string> = {
+  PENDING: 'text-amber-400',
+  MATCHED: 'text-sky-400',
+  SETTLED: 'text-zinc-500',
+  SKIPPED: 'text-zinc-600',
+  FAILED: 'text-rose-400',
+}
+
 export function ScalpyTradesTable({ trades }: Props) {
   const [open, setOpen] = useState<string | null>(null)
 
@@ -34,11 +44,11 @@ export function ScalpyTradesTable({ trades }: Props) {
     <div className="overflow-x-auto scrollbar-none">
       <table className="w-full text-xs font-mono">
         <thead>
-          <tr className="border-b border-white/10 text-zinc-500 text-left">
+          <tr className="border-b border-[var(--sc-hairline)] text-zinc-500 text-left">
             {['Time', 'Match', 'Market', 'Side', 'Price', 'Stake', 'Status', 'Outcome', 'P&L', 'Mode'].map(h => (
               <th
                 key={h}
-                className={`py-2 pr-4 font-medium uppercase tracking-wider text-[10px] ${['Price', 'Stake', 'P&L'].includes(h) ? 'text-right' : ''}`}
+                className={`py-2 pr-4 font-medium uppercase tracking-[0.15em] text-[10px] ${['Price', 'Stake', 'P&L'].includes(h) ? 'text-right' : ''}`}
               >
                 {h}
               </th>
@@ -46,18 +56,26 @@ export function ScalpyTradesTable({ trades }: Props) {
           </tr>
         </thead>
         <tbody className="divide-y divide-[var(--sc-hairline-2)]">
-          {trades.map(trade => {
+          {trades.map((trade, i) => {
             const isOpen = open === trade.id
             const hasLog = !!trade.stoppage_log
             return (
               <Fragment key={trade.id}>
                 <tr
-                  className={`group transition-colors ${isOpen ? 'bg-white/[0.04]' : 'hover:bg-white/[0.025]'} ${hasLog ? 'cursor-pointer' : ''}`}
+                  className={`group sc-row-in transition-colors ${isOpen ? 'bg-sky-500/[0.06]' : 'hover:bg-sky-500/5'} ${hasLog ? 'cursor-pointer' : ''}`}
+                  style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}
                   onClick={hasLog ? () => setOpen(isOpen ? null : trade.id) : undefined}
                   title={hasLog ? 'Click to see the post-90′ timeline' : undefined}
                 >
-                  <td className={`py-2.5 pr-4 pl-3 text-zinc-400 whitespace-nowrap ${trade.outcome === 'WON' ? 'sc-strip-pos' : trade.outcome === 'LOST' ? 'sc-strip-neg' : ''}`}>
-                    {hasLog && <span className="text-zinc-600 group-hover:text-[var(--sc-accent)] mr-1">{isOpen ? '▾' : '▸'}</span>}
+                  <td className="py-2.5 pr-4 pl-3 text-zinc-400 whitespace-nowrap">
+                    {hasLog && (
+                      <svg
+                        className={`sc-nav-motion inline-block w-3 h-3 mr-1.5 -mt-px text-zinc-600 group-hover:text-sky-400 ${isOpen ? 'rotate-90' : ''}`}
+                        fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                      </svg>
+                    )}
                     {new Date(trade.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                   </td>
                   <td className="py-2.5 pr-4 text-zinc-100 font-medium">
@@ -82,7 +100,7 @@ export function ScalpyTradesTable({ trades }: Props) {
                     <div className="text-zinc-500">{trade.selection}</div>
                   </td>
                   <td className="py-2.5 pr-4">
-                    <span className={`sc-pill ${trade.side === 'BACK' ? 'sc-pill-accent' : 'sc-pill-neg'}`}>
+                    <span className={`text-[11px] font-semibold ${trade.side === 'BACK' ? 'text-sky-400' : 'text-rose-400'}`}>
                       {trade.side}
                     </span>
                   </td>
@@ -90,9 +108,11 @@ export function ScalpyTradesTable({ trades }: Props) {
                   <td className="py-2.5 pr-4 text-right tabular-nums text-zinc-400">£{trade.stake}</td>
                   <td className="py-2.5 pr-4">
                     {trade.status === 'PENDING' ? (
-                      <span className="sc-pill sc-pill-warn"><span className="sc-live-dot text-amber-400" />PENDING</span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-400">
+                        <span className="sc-live-dot text-amber-400" />PENDING
+                      </span>
                     ) : (
-                      <span className="sc-pill sc-pill-neutral">{trade.status}</span>
+                      <span className={`text-[11px] font-semibold ${STATUS_TEXT[trade.status]}`}>{trade.status}</span>
                     )}
                   </td>
                   <td className="py-2.5 pr-4">
@@ -109,20 +129,25 @@ export function ScalpyTradesTable({ trades }: Props) {
                   </td>
                   <td className="py-2.5 pr-4">
                     {trade.dry_run ? (
-                      <span className="sc-pill sc-pill-warn">DRY</span>
+                      <span className="text-[11px] font-semibold text-amber-400/90">DRY</span>
                     ) : (
-                      <span className="sc-pill sc-pill-pos">LIVE</span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400">
+                        <span className="h-1 w-1 rounded-full bg-emerald-400" />LIVE
+                      </span>
                     )}
                   </td>
                 </tr>
                 {isOpen && hasLog && (
-                  <tr className="bg-black/20">
+                  <tr className="bg-zinc-900/40">
                     <td colSpan={10} className="px-4 py-3">
-                      <div className="sc-rise">
-                        <div className="text-[10px] uppercase tracking-[0.14em] text-zinc-500 mb-2">
-                          Post-90′ timeline · {trade.home_team} v {trade.away_team}
+                      <div className="sc-rise sc-terminal">
+                        <div className="sc-terminal-bar">
+                          <span className="text-sky-500/40 text-[9px]">◆</span>
+                          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500">
+                            Post-90′ timeline · {trade.home_team} v {trade.away_team}
+                          </span>
                         </div>
-                        <pre className="text-[11px] leading-relaxed text-zinc-300 max-h-96 overflow-y-auto whitespace-pre-wrap font-mono border border-white/10 rounded-lg bg-black/40 p-3">
+                        <pre className="text-[11px] leading-relaxed text-zinc-300 max-h-96 overflow-y-auto whitespace-pre-wrap font-mono p-3">
                           {trade.stoppage_log}
                         </pre>
                       </div>

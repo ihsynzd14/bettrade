@@ -105,7 +105,7 @@ export default function AdminPage() {
     return () => clearInterval(t)
   }, [refresh])
 
-  const sendControl = async (action: 'kill' | 'resume') => {
+  const sendControl = async (action: 'kill' | 'resume' | 'reset_circuit_breaker') => {
     setBusy(true)
     try {
       const r = await fetch(`${ENGINE}/api/scalpy/control`, {
@@ -130,6 +130,13 @@ export default function AdminPage() {
   const lossPct = Math.min(100, Math.max(0, (-pnl / lossLimit) * 100))
   const liab = status?.openLiability
   const maxLiab = Number(status?.brakes?.maxTotalOpenLiability ?? 20)
+  const consecutiveLosses = c?.consecutiveLosses ?? 0
+  const cbThreshold = Number(status?.brakes?.circuitBreakerLosses ?? 5)
+  // The circuit breaker blocks every new bet the moment consecutiveLosses hits the threshold — this
+  // check is INDEPENDENT of `killed` (a resume() only clears the kill flag; canPlaceBet still reads
+  // this counter directly), so the bot can be silently frozen with killed:false and no other visible
+  // alarm. Surface it loudly and give a direct way to clear it (2026-07-12 incident).
+  const circuitBreakerTripped = consecutiveLosses >= cbThreshold
 
   const now = Date.now()
   const placedIn = (m: number) => log.filter((d) => d.action === 'PLACED' && now - new Date(d.ts).getTime() < m * 60000).length
@@ -156,6 +163,11 @@ export default function AdminPage() {
     sendControl('resume')
   }
 
+  const onResetCircuitBreaker = () => {
+    if (!window.confirm(`Reset the consecutive-loss streak (currently ${consecutiveLosses}/${cbThreshold}) and let betting resume?`)) return
+    sendControl('reset_circuit_breaker')
+  }
+
   const toggleManualArm = async () => {
     const next = !manualArm
     const msg = next
@@ -178,24 +190,36 @@ export default function AdminPage() {
   }
 
   const btn =
-    'inline-flex items-center gap-2 font-mono font-bold cursor-pointer transition-colors ' +
+    'inline-flex items-center gap-2 font-mono font-bold cursor-pointer transition-all duration-200 ' +
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 ' +
     'disabled:opacity-50 disabled:cursor-not-allowed'
+  const btnPress = 'hover:scale-[1.015] active:scale-[0.98]'
+
+  // Stat-cell hairline dividers — one instrument band instead of 4 separate cards (2x2 on mobile, 1x4 from sm).
+  const cellBorders = [
+    'border-b sm:border-b-0 border-r',
+    'border-b sm:border-b-0 sm:border-r',
+    'border-r',
+    '',
+  ]
 
   return (
     <>
       <Nav />
-      <main className="pt-14 min-h-screen">
-        <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+      <main className="relative pt-14 min-h-screen">
+        <div className="pointer-events-none fixed inset-0 bg-grid opacity-40" />
+        <div aria-hidden className="pointer-events-none fixed -top-32 right-[-10%] w-[600px] h-[600px] rounded-full sc-glow-orb" />
+        <div className="relative z-10 max-w-6xl mx-auto px-4 py-8 space-y-6">
 
-          {/* Header — matches Scalpy / Live Fixtures */}
-          <div className="flex items-center justify-between gap-4">
+          {/* Header — eyebrow + sans display, matches Scalpy / Results */}
+          <div className="flex items-end justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-2xl font-mono font-bold text-white">Admin</h1>
-              <p className="text-sm text-zinc-500 font-mono mt-1">Scalpy safety control panel</p>
+              <p className="font-mono text-xs uppercase tracking-[0.2em] text-sky-400 mb-3">Safety Control</p>
+              <h1 className="font-sans font-bold text-3xl sm:text-4xl tracking-tight text-zinc-50">Admin</h1>
+              <p className="font-sans text-sm text-zinc-400 mt-2">Scalpy safety control panel</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-2 text-xs font-mono text-zinc-500">
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="flex items-center gap-2 text-xs font-mono text-zinc-500 px-2.5 py-1.5 rounded-md border border-[var(--sc-hairline)]">
                 <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'}`} />
                 {connected ? 'connected' : 'offline'}
               </span>
@@ -211,28 +235,45 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Banners */}
+          {/* Banners — semantic colors untouched; depth + radius brought in line with the rest of the app */}
           {err && (
-            <div className="flex items-center gap-2 rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2.5 text-sm font-mono text-rose-300">
+            <div className="flex items-center gap-2 rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-2.5 text-sm font-mono text-rose-300 shadow-[var(--sc-shadow)]">
               <AlertIcon className="w-4 h-4 shrink-0" /> {err}
             </div>
           )}
           {c && !c.persistenceAvailable && (
-            <div className="flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-sm font-mono text-amber-300">
+            <div className="flex items-center gap-2 rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-sm font-mono text-amber-300 shadow-[var(--sc-shadow)]">
               <AlertIcon className="w-4 h-4 shrink-0" />
               <span>Control persistence OFF — apply the <code className="text-amber-200">scalpy_control</code> migration (kill-switch won&apos;t survive restart).</span>
             </div>
           )}
+          {circuitBreakerTripped && (
+            <div className="flex items-center justify-between gap-3 flex-wrap rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm font-mono text-rose-300 shadow-[var(--sc-shadow)]">
+              <div className="flex items-center gap-2">
+                <AlertIcon className="w-4 h-4 shrink-0" />
+                <span>
+                  Circuit breaker tripped — {consecutiveLosses}/{cbThreshold} consecutive losses. Every new bet is being silently
+                  blocked{!killed && ' even though the engine shows RUNNING'} — resuming from a kill does <u>not</u> clear this by itself.
+                </span>
+              </div>
+              <button
+                type="button" disabled={busy} onClick={onResetCircuitBreaker} aria-label="Reset circuit breaker"
+                className={`${btn} ${btnPress} shrink-0 text-xs px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white focus-visible:ring-rose-400`}
+              >
+                <PowerIcon className="w-3.5 h-3.5" /> Reset circuit breaker
+              </button>
+            </div>
+          )}
 
           {/* Kill switch — hero */}
-          <div className={`rounded-2xl border p-6 ${killed ? 'border-rose-500/40 bg-rose-500/[0.07]' : 'border-emerald-500/30 bg-emerald-500/[0.06]'}`}>
+          <div className={`rounded-2xl border p-6 shadow-[var(--sc-shadow-hero)] ${killed ? 'border-rose-500/40 bg-rose-500/[0.07]' : 'border-emerald-500/30 bg-emerald-500/[0.06]'}`}>
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-4">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${killed ? 'bg-rose-500/15 text-rose-400' : 'bg-emerald-500/15 text-emerald-400'}`}>
                   {killed ? <PowerIcon className="w-6 h-6" /> : <ShieldIcon className="w-6 h-6" />}
                 </div>
                 <div>
-                  <div className="text-xs font-mono uppercase tracking-wider text-zinc-500">Engine state</div>
+                  <div className="text-xs font-mono uppercase tracking-[0.2em] text-zinc-500">Engine state</div>
                   <div className={`text-2xl font-mono font-bold ${killed ? 'text-rose-400' : 'text-emerald-400'}`}>
                     {killed ? 'KILLED' : 'RUNNING'}
                   </div>
@@ -246,14 +287,14 @@ export default function AdminPage() {
               {killed ? (
                 <button
                   type="button" disabled={busy} onClick={onResume} aria-label="Resume engine"
-                  className={`${btn} px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-lg focus-visible:ring-emerald-400`}
+                  className={`${btn} ${btnPress} px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-lg shadow-[var(--sc-shadow)] focus-visible:ring-emerald-400`}
                 >
                   <PlayIcon className="w-5 h-5" /> RESUME
                 </button>
               ) : (
                 <button
                   type="button" disabled={busy} onClick={() => sendControl('kill')} aria-label="Kill engine — stop all betting"
-                  className={`${btn} px-8 py-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xl focus-visible:ring-rose-400`}
+                  className={`${btn} ${btnPress} px-8 py-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xl shadow-[var(--sc-shadow)] focus-visible:ring-rose-400`}
                 >
                   <PowerIcon className="w-6 h-6" /> KILL
                 </button>
@@ -265,7 +306,7 @@ export default function AdminPage() {
                 className={`${btn} text-xs px-3 py-1.5 rounded-lg border focus-visible:ring-zinc-400 ${
                   c?.trackingPaused
                     ? 'border-amber-500/40 bg-amber-500/10 text-amber-400'
-                    : 'border-white/10 text-zinc-400 hover:text-white hover:border-white/20'
+                    : 'border-[var(--sc-hairline)] text-zinc-400 hover:text-white hover:border-white/20'
                 }`}
               >
                 <PauseIcon className="w-3.5 h-3.5" />
@@ -277,7 +318,7 @@ export default function AdminPage() {
                 className={`${btn} text-xs px-3 py-1.5 rounded-lg border focus-visible:ring-sky-400 ${
                   manualArm
                     ? 'border-sky-500/40 bg-sky-500/10 text-sky-300'
-                    : 'border-white/10 text-zinc-400 hover:text-white hover:border-white/20'
+                    : 'border-[var(--sc-hairline)] text-zinc-400 hover:text-white hover:border-white/20'
                 }`}
               >
                 <TargetIcon className="w-3.5 h-3.5" />
@@ -289,40 +330,76 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Stat strip — matches ScalpySummaryBar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Stat label="Today P&L vs limit" value={`£${pnl.toFixed(2)} / -£${lossLimit}`} valueClass={pnl < 0 ? 'text-rose-400' : 'text-emerald-400'}>
-              <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                <div className={`h-full transition-all duration-300 ${lossPct > 70 ? 'bg-rose-500' : 'bg-amber-500'}`} style={{ width: `${lossPct}%` }} />
-              </div>
-            </Stat>
-            <Stat label="Open liability" value={liab ? `£${liab.total.toFixed(2)} / £${maxLiab}` : '—'}
-              sub={liab ? `${liab.count} open bet${liab.count !== 1 ? 's' : ''}` : undefined} />
-            <Stat label="Consecutive losses" value={String(c?.consecutiveLosses ?? 0)}
-              valueClass={(c?.consecutiveLosses ?? 0) >= 3 ? 'text-amber-400' : 'text-white'} />
-            <Stat label="Bet rate (5m)" value={`${placedIn(5)} placed`}
-              sub={`${blockedIn(5)} blocked · ${placedIn(15)}/15m`}
-              valueClass={placedIn(5) >= 10 ? 'text-amber-400' : 'text-white'} />
+          {/* Stat strip — one hairline-divided instrument band, matches ScalpySummaryBar */}
+          <div className="sc-card sc-rise overflow-hidden">
+            <div className="grid grid-cols-2 sm:grid-cols-4">
+              <Stat
+                label="Today P&L vs limit" value={`£${pnl.toFixed(2)} / -£${lossLimit}`}
+                valueColor={pnl < 0 ? 'var(--color-rose-400)' : 'var(--color-emerald-400)'}
+                borderClass={cellBorders[0]}
+              >
+                <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                  <div className={`h-full transition-all duration-300 ${lossPct > 70 ? 'bg-rose-500' : 'bg-amber-500'}`} style={{ width: `${lossPct}%` }} />
+                </div>
+              </Stat>
+              <Stat
+                label="Open liability" value={liab ? `£${liab.total.toFixed(2)} / £${maxLiab}` : '—'}
+                sub={liab ? `${liab.count} open bet${liab.count !== 1 ? 's' : ''}` : undefined}
+                borderClass={cellBorders[1]}
+              />
+              <Stat
+                label="Consecutive losses"
+                value={`${consecutiveLosses} / ${cbThreshold}`}
+                valueColor={circuitBreakerTripped ? 'var(--color-rose-400)' : consecutiveLosses >= Math.max(1, cbThreshold - 2) ? 'var(--color-amber-400)' : undefined}
+                borderClass={cellBorders[2]}
+              >
+                {circuitBreakerTripped && (
+                  <button
+                    type="button" disabled={busy} onClick={onResetCircuitBreaker} aria-label="Reset circuit breaker"
+                    className={`${btn} ${btnPress} mt-2 w-full justify-center text-[10px] px-2.5 py-1.5 rounded-md bg-rose-600 hover:bg-rose-500 text-white focus-visible:ring-rose-400`}
+                  >
+                    Reset — unblock betting
+                  </button>
+                )}
+              </Stat>
+              <Stat
+                label="Bet rate (5m)" value={`${placedIn(5)} placed`}
+                sub={`${blockedIn(5)} blocked · ${placedIn(15)}/15m`}
+                valueColor={placedIn(5) >= 10 ? 'var(--color-amber-400)' : undefined}
+                borderClass={cellBorders[3]}
+              />
+            </div>
           </div>
 
-          {/* Decision log — matches the trades table */}
-          <section>
-            <h2 className="text-sm font-mono font-semibold text-zinc-400 uppercase tracking-wider mb-3">Recent decisions</h2>
-            <div className="rounded-xl border border-white/10 bg-white/5 overflow-x-auto">
+          {/* Decision log — panel header band + hairline table, matches the trades table */}
+          <section className="sc-card overflow-hidden">
+            <h2 className="flex items-center justify-between gap-2 px-4 py-2.5 border-b border-[var(--sc-hairline)]">
+              <span className="flex items-center gap-2 font-mono text-[11px] font-semibold text-zinc-500 uppercase tracking-[0.15em]">
+                <span className="sc-live-dot text-sky-400" />Recent decisions
+              </span>
+              <span className="font-mono text-[11px] text-zinc-500 tabular-nums">{log.length} entries</span>
+            </h2>
+            <div className="overflow-x-auto scrollbar-none">
               {log.length === 0 ? (
-                <div className="text-center py-12 text-zinc-600 font-mono text-sm">No decisions yet.</div>
+                <div className="flex flex-col items-center gap-3 py-16 text-zinc-600 font-mono text-sm">
+                  <span className="sc-live-dot text-sky-400" />No decisions yet.
+                </div>
               ) : (
                 <table className="w-full text-xs font-mono">
                   <thead>
-                    <tr className="border-b border-white/10 text-zinc-500 text-left">
+                    <tr className="border-b border-[var(--sc-hairline)] text-zinc-500 text-left">
                       {['Time', 'Action', 'Match', 'Reason / brake', 'Detail'].map((h) => (
-                        <th key={h} className="py-2.5 px-3 font-medium uppercase tracking-wider">{h}</th>
+                        <th key={h} className="py-2.5 px-3 font-medium uppercase tracking-[0.15em]">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-[var(--sc-hairline-2)]">
                     {log.map((d, i) => (
-                      <tr key={i} className="hover:bg-white/5 transition-colors">
+                      <tr
+                        key={i}
+                        className="sc-row-in hover:bg-sky-500/5 transition-colors"
+                        style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}
+                      >
                         <td className="py-2 px-3 text-zinc-500 whitespace-nowrap">
                           {new Date(d.ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </td>
@@ -338,7 +415,7 @@ export default function AdminPage() {
             </div>
           </section>
 
-          <p className="text-[10px] font-mono text-zinc-600">
+          <p className="text-[10px] font-mono text-zinc-600 pt-2 border-t border-[var(--sc-hairline)]">
             Polls {ENGINE}/api/scalpy/control every 3s · trading day {c?.tradingDay ?? '—'} (Europe/Istanbul)
           </p>
         </div>
@@ -347,13 +424,20 @@ export default function AdminPage() {
   )
 }
 
-function Stat({ label, value, sub, valueClass, children }: {
-  label: string; value: string; sub?: string; valueClass?: string; children?: React.ReactNode
+function Stat({ label, value, sub, valueClass, valueColor, borderClass, children }: {
+  label: string; value: string; sub?: string; valueClass?: string; valueColor?: string; borderClass?: string; children?: React.ReactNode
 }) {
+  // `valueColor` (inline style, e.g. 'var(--color-rose-400)') is the escape hatch for the -400 shade
+  // of rose/amber/emerald: those get redefined per-theme in globals.css OUTSIDE the `@theme` block,
+  // and Tailwind doesn't reliably generate the corresponding `.text-*-400` utility rule for them in
+  // this project — the CSS variables themselves resolve fine, so referencing them directly via inline
+  // style sidesteps the gap. `valueClass` still works for static/always-present classes.
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 space-y-1">
-      <div className="text-xs font-mono text-zinc-500 uppercase tracking-wider">{label}</div>
-      <div className={`text-xl font-mono font-bold ${valueClass ?? 'text-white'}`}>{value}</div>
+    <div className={`flex flex-col gap-1.5 px-4 py-4 sm:py-5 border-[var(--sc-hairline)] ${borderClass ?? ''}`}>
+      <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.15em]">{label}</div>
+      <div className={`text-xl font-mono font-bold ${valueColor ? '' : valueClass ?? 'text-white'}`} style={valueColor ? { color: valueColor } : undefined}>
+        {value}
+      </div>
       {sub && <div className="text-[10px] font-mono text-zinc-600">{sub}</div>}
       {children}
     </div>

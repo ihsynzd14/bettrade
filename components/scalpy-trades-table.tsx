@@ -21,7 +21,9 @@ function pnlClass(pnl: number | null): string {
 // Status as bare colored mono text — the homepage execution-panel dialect
 // (pills are reserved for the two identity chips: Friendly and Outcome).
 const STATUS_TEXT: Record<ScalpyTrade['status'], string> = {
+  CLAIMED: 'text-zinc-500',
   PENDING: 'text-amber-400',
+  PARTIALLY_MATCHED: 'text-amber-300',
   MATCHED: 'text-sky-400',
   SETTLED: 'text-zinc-500',
   SKIPPED: 'text-zinc-600',
@@ -104,15 +106,36 @@ export function ScalpyTradesTable({ trades }: Props) {
                       {trade.side}
                     </span>
                   </td>
-                  <td className="py-2.5 pr-4 text-right tabular-nums text-zinc-100">{trade.requested_price.toFixed(2)}</td>
-                  <td className="py-2.5 pr-4 text-right tabular-nums text-zinc-400">£{trade.stake}</td>
+                  <td className="py-2.5 pr-4 text-right tabular-nums text-zinc-100">
+                    {trade.requested_price.toFixed(2)}
+                    {/* Show the actual matched price when it differs from the requested one */}
+                    {trade.matched_price != null && trade.matched_price !== trade.requested_price && (
+                      <div className="text-[10px] text-emerald-400/90" title="Actual matched price">
+                        → {trade.matched_price.toFixed(2)}
+                      </div>
+                    )}
+                  </td>
+                  <td className="py-2.5 pr-4 text-right tabular-nums text-zinc-400">
+                    £{trade.stake}
+                    {/* Partial match indicator: show matched portion when less than the full stake */}
+                    {trade.matched_size != null && trade.matched_size < trade.stake && (
+                      <div className="text-[10px] text-amber-300/90" title="Matched size vs stake">
+                        {trade.matched_size <= 0 ? 'unmatched' : `£${trade.matched_size.toFixed(2)} matched`}
+                      </div>
+                    )}
+                  </td>
                   <td className="py-2.5 pr-4">
-                    {trade.status === 'PENDING' ? (
+                    {trade.status === 'PENDING' || trade.status === 'PARTIALLY_MATCHED' ? (
                       <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-400">
-                        <span className="sc-live-dot text-amber-400" />PENDING
+                        <span className="sc-live-dot text-amber-400" />{trade.status}
                       </span>
                     ) : (
-                      <span className={`text-[11px] font-semibold ${STATUS_TEXT[trade.status]}`}>{trade.status}</span>
+                      <span
+                        className={`text-[11px] font-semibold ${STATUS_TEXT[trade.status]}`}
+                        title={trade.bet_status ? `Betfair: ${trade.bet_status}` : undefined}
+                      >
+                        {trade.status}
+                      </span>
                     )}
                   </td>
                   <td className="py-2.5 pr-4">

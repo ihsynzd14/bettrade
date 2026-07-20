@@ -55,13 +55,17 @@ export interface ScalpyTrade {
   matched_price: number | null
   stake: number
   reason: string | null
-  status: 'PENDING' | 'MATCHED' | 'SETTLED' | 'SKIPPED' | 'FAILED'
+  status: 'CLAIMED' | 'PENDING' | 'PARTIALLY_MATCHED' | 'MATCHED' | 'SETTLED' | 'SKIPPED' | 'FAILED'
   outcome: 'WON' | 'LOST' | null
   pnl: number | null
   bust_goals: string | null  // running-clock time(s) of the goal(s) that busted the Under, e.g. "92:15"
   stoppage_log: string | null // full post-90' event + decision timeline (newline-joined)
   strategy: 'stoppage' | 'friendly' // which strategy placed the bet
   first_half_added: number | null   // 1st-half added minutes used for friendly pricing
+  // Live order matching result (null for legacy/dry-run rows before the migration)
+  matched_size: number | null      // actual GBP matched (0=unmatched, partial=partial, =stake=full)
+  size_matched_at: string | null   // when the match was confirmed
+  bet_status: string | null        // Betfair order status: EXECUTABLE / EXECUTION_COMPLETE / EXPIRED / CANCELLED
   created_at: string
   settled_at: string | null
 }
@@ -88,6 +92,10 @@ export interface BetPlacedData {
   strategy?: 'stoppage' | 'friendly'
   firstHalfAdded?: number  // friendly: 1st-half added minutes
   dryRun: boolean
+  // Live order matching result (present on bet_placed broadcast)
+  matchedSize?: number
+  matchedPrice?: number | null
+  betStatus?: string | null
 }
 
 // SSE event types emitted by bettrade-engine
@@ -103,7 +111,9 @@ export type ScalpySSEEvent =
   | { type: 'ou_book'; geniusId: string; data: OuBook }
   | { type: 'watch_toggled'; geniusId: string; data: { watching: boolean } }
   | { type: 'bust_goal'; geniusId: string; data: { tradeId: string; clock: string } }
-  | { type: 'trade_matched'; data: { tradeId: string; matchedPrice: number | null } }
-  | { type: 'trade_settled'; data: { tradeId: string; outcome: string; pnl: number; dryRun: boolean } }
+  | { type: 'trade_matched'; data: { tradeId: string; matchedPrice: number | null; matchedSize?: number; stake?: number } }
+  | { type: 'trade_partial_match'; data: { tradeId: string; matchedSize: number; stake: number; matchedPrice: number | null; final?: boolean } }
+  | { type: 'trade_unmatched'; data: { tradeId: string; requestedPrice: number; stake: number } }
+  | { type: 'trade_settled'; data: { tradeId: string; outcome: string; pnl: number; dryRun: boolean; matchedSize?: number; matchedPrice?: number } }
   | { type: 'control_changed'; data: Record<string, unknown> }
   | { type: 'error'; geniusId: string; data: { message: string } }

@@ -30,17 +30,25 @@ interface Status {
 interface Decision {
   ts: string
   match?: string
-  action: 'PLACED' | 'SKIPPED' | 'BLOCKED' | 'DEFERRED' | 'ANNOUNCE' | 'ENGINE' | 'ERROR'
+  action: 'PLACED' | 'MATCHED' | 'PARTIAL_MATCH' | 'UNMATCHED' | 'SETTLED'
+        | 'SKIPPED' | 'BLOCKED' | 'DEFERRED' | 'ANNOUNCE' | 'ENGINE' | 'ERROR'
   reason?: string
   brake?: string
   detail?: string
   price?: number
   stake?: number
   marketType?: string
+  matchedSize?: number
+  matchedPrice?: number
+  betStatus?: string
 }
 
 const actionColor: Record<string, string> = {
   PLACED: 'text-emerald-400',
+  MATCHED: 'text-emerald-300',
+  PARTIAL_MATCH: 'text-amber-300',
+  UNMATCHED: 'text-zinc-500',
+  SETTLED: 'text-sky-300',
   BLOCKED: 'text-rose-400',
   SKIPPED: 'text-zinc-400',
   DEFERRED: 'text-amber-400',

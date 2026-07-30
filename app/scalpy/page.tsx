@@ -8,9 +8,17 @@ const ENGINE_URL = process.env.BETTRADE_ENGINE_URL ?? 'http://localhost:4001'
 
 const EMPTY_SUMMARY: ScalpySummary = { total: 0, settled: 0, won: 0, lost: 0, winRate: null, totalPnl: 0, todayPnl: 0 }
 
-async function fetchTodayTrades(): Promise<ScalpyTrade[]> {
+function istanbulDay(iso: string): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' }).format(new Date(iso))
+}
+
+function todayIstanbulDay(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' }).format(new Date())
+}
+
+async function fetchAllTrades(): Promise<ScalpyTrade[]> {
   try {
-    const res = await fetch(`${ENGINE_URL}/api/scalpy/trades/today`, { cache: 'no-store' })
+    const res = await fetch(`${ENGINE_URL}/api/scalpy/trades?limit=2000`, { cache: 'no-store' })
     const json = await res.json()
     return json.trades ?? []
   } catch {
@@ -29,7 +37,9 @@ async function fetchSummary(): Promise<ScalpySummary> {
 }
 
 export default async function ScalpyPage() {
-  const [trades, summary] = await Promise.all([fetchTodayTrades(), fetchSummary()])
+  const [trades, summary] = await Promise.all([fetchAllTrades(), fetchSummary()])
+  const today = todayIstanbulDay()
+  const todayTrades = trades.filter((trade) => istanbulDay(trade.created_at) === today)
 
   return (
     <>
@@ -48,17 +58,17 @@ export default async function ScalpyPage() {
             <div className="shrink-0 text-[11px] font-mono text-zinc-500 tabular-nums px-2.5 py-1 rounded-md border border-[var(--sc-hairline)]">{new Date().toLocaleString('en-GB')}</div>
           </div>
 
-          <ScalpySummaryBar summary={summary} />
+          <ScalpySummaryBar summary={summary} trades={trades} />
 
           <section className="sc-card overflow-hidden">
             <h2 className="flex items-center justify-between gap-2 px-4 py-2.5 border-b border-[var(--sc-hairline)]">
               <span className="flex items-center gap-2 font-mono text-[11px] font-semibold text-zinc-500 uppercase tracking-[0.15em]">
                 <span className="sc-live-dot text-sky-400" />Bets Today
               </span>
-              <span className="font-mono text-[11px] text-zinc-500 tabular-nums">{trades.length} bet{trades.length !== 1 ? 's' : ''}</span>
+              <span className="font-mono text-[11px] text-zinc-500 tabular-nums">{todayTrades.length} bet{todayTrades.length !== 1 ? 's' : ''}</span>
             </h2>
             <div className="p-1.5 sm:p-2">
-              <ScalpyTradesTable trades={trades} />
+              <ScalpyTradesTable trades={todayTrades} />
             </div>
           </section>
         </div>
